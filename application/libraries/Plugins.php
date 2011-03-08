@@ -26,6 +26,9 @@ class Plugins {
         // Load the directory helper so we can parse for plugins in the plugin directory
         $this->CI->load->helper('directory');
         
+        // Load the file helper to read plugin files
+        $this->CI->load->helper('file');
+        
         // Set the plugins directory if not already set
         if ( empty(self::$plugins_directory) )
         {
@@ -64,7 +67,16 @@ class Plugins {
     		{                
                 if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
                 {
-                    self::$plugins[$name] = array("filename" => $name.".php");   
+                    self::$plugins[$name] = array(
+                        "filename" => $name.".php"
+                    );
+                    
+                    $plugin_headers = $this->get_plugin_headers($name);
+                    
+                    foreach ($plugin_headers AS $k => $v)
+                    {
+                        self::$plugins[$name]['plugin_info'][$k] = $v;  
+                    }  
                 }
     		}
     		else
@@ -72,9 +84,6 @@ class Plugins {
 				return TRUE;	
     		}
     	}
-    	
-    	// Get plugin headers and store them
-    	//$this->get_plugin_headers();	
     }
     
     /**
@@ -82,16 +91,33 @@ class Plugins {
     * plugin file.
     * 
     */
-    protected function get_plugin_headers()
+    protected function get_plugin_headers($plugin)
     {
-    	$plugin_data = "";
-    	
-		preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
-		preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
-		preg_match ( '|Version:(.*)|i', $plugin_data, $version );
-		preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
-		preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
-		preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
+        $arr = "";
+                
+        // Load the plugin we want
+        $plugin_data = read_file(self::$plugins_directory.$plugin."/".$plugin.".php");
+        
+        if ($plugin_data)
+        {   	
+		    preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
+		    preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
+		    preg_match ( '|Version:(.*)|i', $plugin_data, $version );
+		    preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
+		    preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
+		    preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
+            
+            $arr = array(
+                'name' => $name[1],
+                'uri'  => $uri[1],
+                'version' => $version[1],
+                'description' => $description[1],
+                'author_name' => $author_name[1],
+                'author_uri'  => $author_uri[1]
+            );
+        }
+            
+        return $arr;
     }
 	
     /**

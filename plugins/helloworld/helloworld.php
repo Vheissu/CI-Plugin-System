@@ -9,14 +9,14 @@
 */
 
 // Run our hello world function when the render thread event is called
-Plugins::register_action('render', 'hello_world', 10);
+add_action('render', 'hello_world', 10);
 
 // Register another action which will trigger our string function
-Plugins::register_action('render.string', 'hello_world_string', 10);
+add_action('render.string', 'hello_world_string', 10);
 
 // Simulate an action being triggered
-Plugins::run_action('render');
-Plugins::run_action('render.string', "Surprise! I'm being displayed from an action");
+run_action('render');
+run_action('render.string', "Surprise! I'm being displayed from an action");
 
 function hello_world()
 {
