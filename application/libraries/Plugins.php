@@ -9,7 +9,7 @@
 
 class Plugins {
     
-    protected $hooks;
+    protected $names;
 
     protected $current_hook;
     
@@ -21,33 +21,33 @@ class Plugins {
         // Load plugins
     }
 
-    public static function add_hook($hook, $function, $priority=10)
+    public static function add_action($name, $function, $priority=10)
     {
-        if( !empty($this->hooks[$hook][$priority][$function]) && is_array($this->hooks[$hook][$priority][$function]) )
+        if( !empty($this->hooks[$name][$priority][$function]) && is_array($this->hooks[$name][$priority][$function]) )
         {
             return true;
         }
 
-        $this->hooks[$hook][$priority][$function] = array("function" => $function);
+        $this->hooks[$name][$priority][$function] = array("function" => $function);
         return true;
     }
 
-    public static function run_hooks($hook, $arguments="")
+    public static function run_action($name, $arguments="")
     {
-        if(!is_array($this->hooks[$hook]))
+        if(!is_array($this->hooks[$name]))
         {
             return $arguments;
         }
-        $this->current_hook = $hook;
-        ksort($this->hooks[$hook]);
+        $this->current_hook = $name;
+        ksort($this->hooks[$name]);
         
-        foreach($this->hooks[$hook] as $priority => $hooks)
+        foreach($this->hooks[$name] as $priority => $names)
         {
-            if (is_array($hooks))
+            if (is_array($names))
             {
-                foreach($hooks as $hook)
+                foreach($names as $name)
                 {                    
-                    $returnargs = call_user_func_array($hook['function'], array(&$arguments));
+                    $returnargs = call_user_func_array($name['function'], array(&$arguments));
                     
                     if($returnargs)
                     {
@@ -60,13 +60,13 @@ class Plugins {
         return $arguments;
     }  
 
-    public static function remove_hook($hook, $function, $priority=10)
+    public static function remove_action($name, $function, $priority=10)
     {
-        if(!isset($this->hooks[$hook][$priority][$function]))
+        if(!isset($this->hooks[$name][$priority][$function]))
         {
             return true;
         }
-        unset($this->hooks[$hook][$priority][$function]);
+        unset($this->hooks[$name][$priority][$function]);
     }
     
 }
