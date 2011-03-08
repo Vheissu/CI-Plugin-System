@@ -25,3 +25,6 @@ This is not Wordpress. If you have a request make it. If something is missing yo
 
 4. **Where can I get some unicorn blood? (for testing purposes of course)**  
 This is not a programming question, GTFO. Psst! send me an email, I can hook you up.
+
+5. **I still don't get it. How do I use this damn library? AAAAAAAAAHHH**  
+THERE IS NO DOCUMENTATION. IF YOU DO NOT UNDERSTAND AND SOMETHING DOESN'T WORK AND IT IS NOT A BUG, WAIT FOR DOCUMENTATION.
