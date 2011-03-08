@@ -11,7 +11,7 @@
 /**
 * Add our hooks
 */
-Plugins::add_hook("pre.render.thread", "hello_world");
+Plugins::register_action("pre.render.thread", "hello_world");
 
 function hello_world()
 {
