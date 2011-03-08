@@ -12,12 +12,12 @@ class Plugins {
     // Codeigniter instance
     private $CI;
     
-    // Array of all set hooks
-    public static $plugins_directory, $instance, $hooks, $current_hook, $plugins_array;
+    // So. Much. Static.
+    public static $plugins_directory, $instance, $hooks, $current_hook, $plugins;
     
     public function __construct()
     {
-        // Store instance
+        // Store instance of this class
         self::$instance =& $this;
         
     	// Store our Codeigniter instance
@@ -37,30 +37,32 @@ class Plugins {
     }
     
     /**
-     * Set the location of where our plugins are stored
-	 */
+    * Store the location of where our plugins are located
+    * 
+    * @param mixed $directory
+    */
     public static function set_plugin_dir($directory)
     {
-    	$this->plugins_directory = trim($directory);
+    	self::$plugins_directory = trim($directory);
     }
 	
     /**
-	 * Load plugins from the plugins directory and store them
-	 */
+    * Takes care of loading our plugins and making them usable, etc.
+    * One lone protected function in a sea of static functions.
+    * 
+    */
     protected function load_plugins()
     {
-    	// Because plugin folder names are the same as their respect main plugin file
-    	// We only have to go in one level deep and not recurse sub folders as that
-    	// Would be too intensive.
+    	// Only go one deep as the plugin file is the same name as the folder
     	$plugins = directory_map(self::$plugins_directory, 1);
     	
     	// Iterate through every plugin found
     	foreach ($plugins AS $key => $name)
     	{               		
-    		// If we already have this plugin added to our cache of plugin objects
-    		if ( !isset(self::$plugins_array[$name]) AND !stripos($name, ".") )
+    		// If the plugin hasn't already been added and isn't a file
+    		if ( !isset(self::$plugins[$name]) AND !stripos($name, ".") )
     		{                
-    			self::$plugins_array[$name];
+    			self::$plugins[$name];
     		}
     		else
     		{
@@ -73,10 +75,10 @@ class Plugins {
     }
     
     /**
-	 * Get header information from plugins
-	 *
-	 *
-	 */
+    * Shameless Wordpress rip off. Gets plugin information from header of
+    * plugin file.
+    * 
+    */
     protected function get_plugin_headers()
     {
     	$plugin_data = "";
@@ -90,20 +92,21 @@ class Plugins {
     }
 	
     /**
-     * Register action registers a new action to listen out for.
-     *
-     * @param $name string
-     * @param $function string
-     * @param $priority integer
-     * @return true
-	 */
-    public static function register_action($name, $function, $priority=10)
+    * Registers a new action hook callback
+    * 
+    * @param mixed $name
+    * @param mixed $function
+    * @param mixed $priority
+    */
+    public static function add_action($name, $function, $priority=10)
     {
+        // If we have already registered this action return true
         if ( isset(self::$hooks[$name][$priority][$function]) )
         {
             return true;
         }
-
+        
+        // Store the action hook in the $hooks array
         self::$hooks[$name][$priority][$function] = array(
             "function" => $function
         );
@@ -112,20 +115,24 @@ class Plugins {
     }
 	
     /**
-     * Triggers an action taking place somewhere
-     *
-     * @param $name string
-     * @param $arguments array
-	 */
+    * Trigger an action for a particular action hook
+    * 
+    * @param mixed $name
+    * @param mixed $arguments
+    * @return mixed
+    */
     public static function run_action($name, $arguments = "")
     {
+        // Oh, no you didn't. Are you trying to run an action hook that doesn't exist?
         if ( !isset(self::$hooks[$name]) AND !is_array(self::$hooks[$name]) )
         {
             return $arguments;
         }
         
+        // Set the current running hook to this
         self::$current_hook = $name;
         
+        // Key sort our action hooks
         ksort(self::$hooks[$name]);
         
         foreach(self::$hooks[$name] AS $priority => $names)
@@ -133,7 +140,8 @@ class Plugins {
             if (is_array($names))
             {
                 foreach($names AS $name)
-                {                    
+                {
+                    // This line runs our function and stores the result in a variable                    
                     $returnargs = call_user_func_array($name['function'], array(&$arguments));
                     
                     if ($returnargs)
@@ -143,43 +151,49 @@ class Plugins {
                 }
             }
         }
+        
+        // No running hook!
         self::$current_hook = '';
         return $arguments;
     }  
 	
     /**
-     * Removes an action a.k.a hook
-     *
-     * @param $name string
-     * @param $function string
-     * @param $priority integer
-     * @return true
-	 */
+    * Remove an action hook. No more needs to be said.
+    * 
+    * @param mixed $name
+    * @param mixed $function
+    * @param mixed $priority
+    */
     public static function remove_action($name, $function, $priority=10)
     {
+        // If the action hook doesn't, just return true
         if ( !isset(self::$hooks[$name][$priority][$function]) )
         {
             return true;
         }
         
+        // Remove the action hook from our hooks array
         unset( self::$hooks[$name][$priority][$function] );
     }
     
     /**
-     * Get the currently running hook
-	 */
+    * Get the currently running action hook
+    * 
+    */
     public static function current_hook()
     {
         return self::$current_hook;
     }
     
     /**
-     * Sometimes it's good to know what plugins and hooks we have loaded.
-	 */
+    * It's 3am, do you know where your children are?
+    * Returns all found plugins and registered hooks.
+    * 
+    */
     public static function debug_plugins()
     {
 		echo "<p><strong>Plugins found</strong></p>";
-		print_r(self::$plugins_array);
+		print_r(self::$plugins);
 		echo "<br />";
 		echo "<br />";
 		echo "<p><strong>Registered hooks</strong></p>";
@@ -187,12 +201,39 @@ class Plugins {
     }
     
     /**
-    * Return instance of this class
+    * Return an instance of this class even though we probably
+    * don't actually need it.
     * 
     */
     public static function instance()
     {
         return self::$instance;
-    }   
+    }  
 }
+
+function add_action($name, $function, $priority=10)
+{
+    Plugins::add_action($name, $function, $priority);
+}
+
+function run_action($name, $arguments = "")
+{
+    Plugins::run_action($name, $arguments);
+}
+
+function remove_action($name, $function, $priority=10)
+{
+    Plugins::remove_action($name, $function, $priority);
+}
+
+function set_plugin_dir($directory)
+{
+    Plugins::set_plugin_dir($directory);
+}
+
+function debug_plugins()
+{
+    Plugins::debug_plugins();
+}
+
 ?>
