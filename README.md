@@ -1,10 +1,6 @@
 ## A hook based plugin system for Codeigniter 2.0+
 
-Ever wanted to implement plugin functionality into your Codeigniter applications and have the ability to define hooks and add hooks to your plugins so users can control aspects of your application like Wordpress? That's where this library comes in. It's still heavily alpha, but should work.
-
-## Is this the same as that other events library for Codeigniter?
-
-This is a complete from the ground up implementation. The other events library for Codeigniter is basically the same, but with better documentation, but this library is slightly easier as you don't reference the class Plugins to run the static functions. Utility functions take care of that for you giving the Wordpress like appearance. 
+Ever wanted to implement plugin functionality into your Codeigniter applications and have the ability to define hooks and add hooks to your plugins so users can control aspects of your application like Wordpress? That's where this library comes in. It's still heavily alpha, but should work. This is a complete from the ground up library that has been developed to give you the ability to define hooks including hooks with arguments.
 
 ## How do I use this?
 
