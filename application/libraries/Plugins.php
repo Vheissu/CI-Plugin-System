@@ -9,12 +9,22 @@
 
 class Plugins {
     
-    protected $names;
-
+    // Codeigniter instance
+    protected $CI;
+    
+    // Array of all set hooks
+    protected $hooks;
+    
+    // The current hook we're working with
     protected $current_hook;
     
     // Array of all plugins
     protected $plugins_array = array();
+    
+    public function __construct()
+    {
+        $this->CI =& get_instance();
+    }
 
     public function load_plugins()
     {
