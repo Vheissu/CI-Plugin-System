@@ -13,7 +13,7 @@ class Plugins {
     protected $CI;
     
     // Where are our plugins stored (with a trailing slash)
-    protected $plugins_directory = APPPATH."plugins/";
+    protected $plugins_directory;
     
     // Array of all set hooks
     protected $hooks;
@@ -31,6 +31,9 @@ class Plugins {
         
         // Load the directory helper so we can parse for plugins in the plugin directory
         $this->CI->load->helper('directory');
+        
+        // Set the plugins directory
+        $this->plugins_directory = APPPATH . "plugins/";
         
         // Load all plugins
         $this->load_plugins();
