@@ -62,7 +62,10 @@ class Plugins {
     		// If the plugin hasn't already been added and isn't a file
     		if ( !isset(self::$plugins[$name]) AND !stripos($name, ".") )
     		{                
-    			self::$plugins[$name];
+                if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
+                {
+                    self::$plugins[$name] = array("filename" => $name.".php");   
+                }
     		}
     		else
     		{
