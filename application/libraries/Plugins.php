@@ -193,14 +193,6 @@ class Plugins {
     public static function instance()
     {
         return self::$instance;
-    }
-    
-}
-Plugins::register_action('render', 'test_function', 10);
-Plugins::run_action('render');
-
-function test_function($value)
-{
-    echo "Test function working! with a value of: ".$value."";
+    }   
 }
 ?>

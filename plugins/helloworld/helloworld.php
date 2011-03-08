@@ -9,11 +9,26 @@
 */
 
 // Run our hello world function when the render thread event is called
-Plugins::register_action("pre.render.thread", "hello_world");
+Plugins::register_action('render', 'hello_world', 10);
+
+// Register another action which will trigger our string function
+Plugins::register_action('render.string', 'hello_world_string', 10);
+
+// Simulate an action being triggered
+Plugins::run_action('render');
+Plugins::run_action('render.string', "Surprise! I'm being displayed from an action");
 
 function hello_world()
 {
-    
+    echo "Hello World!";
+    echo "<br /><br />";
+}
+
+function hello_world_string($string)
+{
+    echo "Hello World! I am a string function with a dynamic value of: ". $string;
+    echo "<br /><br />";
+    echo "Uh, oh! the string is manipulated to be call caps! see? ". strtoupper($string);
 }
 
 function helloworld_install()
