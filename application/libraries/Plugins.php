@@ -32,8 +32,11 @@ class Plugins {
         // Load the directory helper so we can parse for plugins in the plugin directory
         $this->CI->load->helper('directory');
         
-        // Set the plugins directory
-        $this->plugins_directory = APPPATH . "plugins/";
+        // Set the plugins directory if not already set
+        if ( empty($this->plugins_directory) )
+        {
+            $this->plugins_directory = APPPATH . "plugins/";   
+        }
         
         // Load all plugins
         $this->load_plugins();
