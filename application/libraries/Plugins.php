@@ -193,11 +193,29 @@ class Plugins {
     public static function debug_plugins()
     {
 		echo "<p><strong>Plugins found</strong></p>";
-		print_r(self::$plugins);
+        
+        if (self::$plugins)
+        {
+		    print_r(self::$plugins);
+        }
+        else
+        {
+            echo "<p>No plugins found.</p>";
+        }
+		
+        echo "<br />";
 		echo "<br />";
-		echo "<br />";
+        
 		echo "<p><strong>Registered hooks</strong></p>";
-		print_r(self::$hooks);    	
+        
+        if (self::$hooks)
+        {
+            print_r(self::$hooks);   
+        }    	
+        else
+        {
+            echo "<p>No registered hooks.</p>";
+        }
     }
     
     /**
