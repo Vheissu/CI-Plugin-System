@@ -59,7 +59,7 @@ class Plugins {
     	{               		
     		// If we already have this plugin added to our cache of plugin objects
     		if ( !isset(self::$plugins_array[$name]) AND !stripos($name, ".") )
-    		{
+    		{                
     			self::$plugins_array[$name];
     		}
     		else
