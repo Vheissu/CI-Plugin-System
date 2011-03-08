@@ -1,16 +1,14 @@
 <?php
-
 /**
-* Name: Hello World
+* Plugin Name: Hello World
+* Plugin URI: http://ilikekillnerds.com
+* Version: 1.0
 * Description: A simple hello world plugin
-* Website: http://ilikekillnerds.com
 * Author: Dwayne Charrington
-* Author url: http://ilikekillnerds.com
+* Author URI: http://ilikekillnerds.com
 */
 
-/**
-* Add our hooks
-*/
+// Run our hello world function when the render thread event is called
 Plugins::register_action("pre.render.thread", "hello_world");
 
 function hello_world()
@@ -18,12 +16,12 @@ function hello_world()
     
 }
 
-function hello_install()
+function helloworld_install()
 {
     // Install logic is run when plugin is installed
 }
 
-function hello_activate()
+function helloworld_activate()
 {
     // When plugin is activated   
 }

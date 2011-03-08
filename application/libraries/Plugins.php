@@ -10,22 +10,16 @@
 class Plugins {
     
     // Codeigniter instance
-    protected $CI;
-    
-    // Where are our plugins stored (with a trailing slash)
-    protected $plugins_directory;
+    private $CI;
     
     // Array of all set hooks
-    protected $hooks;
-    
-    // The current hook we're working with
-    protected $current_hook;
-    
-    // Array of all plugins
-    protected $plugins_array = array();
+    public static $plugins_directory, $instance, $hooks, $current_hook, $plugins_array;
     
     public function __construct()
     {
+        // Store instance
+        self::$instance =& $this;
+        
     	// Store our Codeigniter instance
         $this->CI =& get_instance();
         
@@ -33,9 +27,9 @@ class Plugins {
         $this->CI->load->helper('directory');
         
         // Set the plugins directory if not already set
-        if ( empty($this->plugins_directory) )
+        if ( empty(self::$plugins_directory) )
         {
-            $this->plugins_directory = APPPATH . "plugins/";   
+            self::$plugins_directory = FCPATH . "plugins/";   
         }
         
         // Load all plugins
@@ -45,7 +39,7 @@ class Plugins {
     /**
      * Set the location of where our plugins are stored
 	 */
-    public function set_plugin_dir($directory)
+    public static function set_plugin_dir($directory)
     {
     	$this->plugins_directory = trim($directory);
     }
@@ -58,17 +52,15 @@ class Plugins {
     	// Because plugin folder names are the same as their respect main plugin file
     	// We only have to go in one level deep and not recurse sub folders as that
     	// Would be too intensive.
-    	$plugins = directory_map($this->plugins_directory, 1);
+    	$plugins = directory_map(self::$plugins_directory, 1);
     	
     	// Iterate through every plugin found
-    	foreach ($plugins AS $key => $value)
-    	{
-    		$extensionless = str_replace('.php', '', $value);
-    		
+    	foreach ($plugins AS $key => $name)
+    	{               		
     		// If we already have this plugin added to our cache of plugin objects
-    		if ( !$this->plugins_array[$extensionless] )
+    		if ( !isset(self::$plugins_array[$name]) AND !stripos($name, ".") )
     		{
-    			$this->plugins_array[$extensionless];
+    			self::$plugins_array[$name];
     		}
     		else
     		{
@@ -77,7 +69,7 @@ class Plugins {
     	}
     	
     	// Get plugin headers and store them
-    	$this->get_plugin_headers();	
+    	//$this->get_plugin_headers();	
     }
     
     /**
@@ -107,12 +99,15 @@ class Plugins {
 	 */
     public static function register_action($name, $function, $priority=10)
     {
-        if( !empty($this->hooks[$name][$priority][$function]) && is_array($this->hooks[$name][$priority][$function]) )
+        if ( isset(self::$hooks[$name][$priority][$function]) )
         {
             return true;
         }
 
-        $this->hooks[$name][$priority][$function] = array("function" => $function);
+        self::$hooks[$name][$priority][$function] = array(
+            "function" => $function
+        );
+        
         return true;
     }
 	
@@ -122,17 +117,18 @@ class Plugins {
      * @param $name string
      * @param $arguments array
 	 */
-    public static function run_action($name, $arguments="")
+    public static function run_action($name, $arguments = "")
     {
-        if (!is_array($this->hooks[$name]))
+        if ( !isset(self::$hooks[$name]) AND !is_array(self::$hooks[$name]) )
         {
             return $arguments;
         }
         
-        $this->current_hook = $name;
-        ksort($this->hooks[$name]);
+        self::$current_hook = $name;
         
-        foreach($this->hooks[$name] AS $priority => $names)
+        ksort(self::$hooks[$name]);
+        
+        foreach(self::$hooks[$name] AS $priority => $names)
         {
             if (is_array($names))
             {
@@ -140,14 +136,14 @@ class Plugins {
                 {                    
                     $returnargs = call_user_func_array($name['function'], array(&$arguments));
                     
-                    if($returnargs)
+                    if ($returnargs)
                     {
                         $arguments = $returnargs;
                     }
                 }
             }
         }
-        $this->current_hook = '';
+        self::$current_hook = '';
         return $arguments;
     }  
 	
@@ -161,12 +157,12 @@ class Plugins {
 	 */
     public static function remove_action($name, $function, $priority=10)
     {
-        if ( !isset($this->hooks[$name][$priority][$function]) )
+        if ( !isset(self::$hooks[$name][$priority][$function]) )
         {
             return true;
         }
         
-        unset( $this->hooks[$name][$priority][$function] );
+        unset( self::$hooks[$name][$priority][$function] );
     }
     
     /**
@@ -174,7 +170,7 @@ class Plugins {
 	 */
     public static function current_hook()
     {
-        return $this->current_hook;
+        return self::$current_hook;
     }
     
     /**
@@ -183,12 +179,28 @@ class Plugins {
     public static function debug_plugins()
     {
 		echo "<p><strong>Plugins found</strong></p>";
-		print_r($this->plugins_array);
+		print_r(self::$plugins_array);
 		echo "<br />";
 		echo "<br />";
 		echo "<p><strong>Registered hooks</strong></p>";
-		print_r($this->hooks);    	
+		print_r(self::$hooks);    	
     }
     
+    /**
+    * Return instance of this class
+    * 
+    */
+    public static function instance()
+    {
+        return self::$instance;
+    }
+    
+}
+Plugins::register_action('render', 'test_function', 10);
+Plugins::run_action('render');
+
+function test_function($value)
+{
+    echo "Test function working! with a value of: ".$value."";
 }
 ?>
