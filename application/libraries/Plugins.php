@@ -69,5 +69,10 @@ class Plugins {
         unset($this->hooks[$name][$priority][$function]);
     }
     
+    public static function current_hook()
+    {
+        return $this->current_hook;
+    }
+    
 }
 ?>
