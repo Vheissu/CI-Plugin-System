@@ -106,6 +106,14 @@ class Plugins {
         @call_user_func($name."_deactivate");
     }
     
+    public function trigger_install_plugin($name)
+    {
+        $this->register_plugins();
+        
+        // Call our plugin deactivate function
+        @call_user_func($name."_install");
+    }
+    
     /**
     * The number of plugins found
     * 
@@ -153,14 +161,6 @@ class Plugins {
     	}
     }
     
-    private function trigger_install($name)
-    {
-        $this->register_plugins();
-        
-        // We're installing so call the install function
-        call_user_func($name."_install");
-    }
-    
     /**
     * This bad boy function will help register and include plugin files
     * depending on their status in the database if they're enabled or not.
@@ -191,7 +191,7 @@ class Plugins {
                 $this->CI->db->insert('plugins', $data);
                 
                 // Trigger an install event
-                $this->trigger_install($name);   
+                $this->trigger_install_plugin($name);   
             }
             elseif ($query->num_rows() == 1)
             {
