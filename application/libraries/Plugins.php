@@ -161,12 +161,12 @@ class Plugins {
             {
                 $data = array(
                     "plugin_system_name" => $name,
-                    "plugin_name"        => ltrim($data['plugin_info']['name']),
-                    "plugin_uri"         => ltrim($data['plugin_info']['uri']),
-                    "plugin_version"     => ltrim($data['plugin_info']['version']),
-                    "plugin_description" => ltrim($data['plugin_info']['description']),
-                    "plugin_author"      => ltrim($data['plugin_info']['author_name']),
-                    "plugin_author_uri"  => ltrim($data['plugin_info']['author_uri']),
+                    "plugin_name"        => trim($data['plugin_info']['name']),
+                    "plugin_uri"         => trim($data['plugin_info']['uri']),
+                    "plugin_version"     => trim($data['plugin_info']['version']),
+                    "plugin_description" => trim($data['plugin_info']['description']),
+                    "plugin_author"      => trim($data['plugin_info']['author_name']),
+                    "plugin_author_uri"  => trim($data['plugin_info']['author_uri']),
                     "plugin_status"      => 0
                 );
                 $this->CI->db->insert('plugins', $data);
@@ -222,13 +222,24 @@ class Plugins {
         {
             if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
             {
-                self::$plugins[$plugin]['plugin_info'][$k] = $v;
+                self::$plugins[$plugin]['plugin_info'][$k] = trim($v);
             }
             else
             {
                 return true;
+            }
+            
+            // Get our plugins to compare meta
+            $query = $this->CI->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+            
+            // If plugin value is different and we're not updating the plugin name
+            if (self::$plugins[$plugin]['plugin_info'][$k] != $query->$k AND !stripos($k, "plugin_name"))
+            {
+                $data[$k] = trim($v);
+                $this->CI->db->where('plugin_system_name', $plugin)->update('plugins', $data);
             }  
-        } 
+        }
+         
     }
     
     /**
@@ -254,32 +265,32 @@ class Plugins {
             
             if (isset($name[1]))
             {
-                $arr['name'] = $name[1];
+                $arr['plugin_name'] = $name[1];
             }
             
             if (isset($uri[1]))
             {
-                $arr['uri'] = $uri[1];
+                $arr['plugin_uri'] = $uri[1];
             }
             
             if (isset($version[1]))
             {
-                $arr['version'] = $version[1];
+                $arr['plugin_version'] = $version[1];
             }
             
             if (isset($description[1]))
             {
-                $arr['description'] = $description[1];
+                $arr['plugin_description'] = $description[1];
             }
             
             if (isset($author_name[1]))
             {
-                $arr['author_name'] = $author_name[1];
+                $arr['plugin_author'] = $author_name[1];
             }
             
             if (isset($author_uri[1]))
             {
-                $arr['author_uri'] = $author_uri[1];
+                $arr['plugin_author_uri'] = $author_uri[1];
             }
         }
             
