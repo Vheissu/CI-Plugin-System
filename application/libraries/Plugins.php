@@ -37,7 +37,12 @@ class Plugins {
         
         // Load all plugins
         $this->load_plugins();
+        
+        // Register plugins
         $this->register_plugins();
+        
+        // Clean out old plugins that don't exist
+        $this->clean_plugins_table();
     }
     
     /**
@@ -104,7 +109,19 @@ class Plugins {
             // Plugin doesn't exist, add it.
             if ($query->num_rows() == 0)
             {
-                die('zero');   
+                $data = array(
+                    "plugin_system_name" => $name,
+                    "plugin_name"        => ltrim($data['plugin_info']['name']),
+                    "plugin_uri"         => ltrim($data['plugin_info']['uri']),
+                    "plugin_version"     => ltrim($data['plugin_info']['version']),
+                    "plugin_description" => ltrim($data['plugin_info']['description']),
+                    "plugin_author"      => ltrim($data['plugin_info']['author_name']),
+                    "plugin_author_uri"  => ltrim($data['plugin_info']['author_uri']),
+                    "plugin_status"      => 0
+                );
+                $this->CI->db->insert('plugins', $data);
+                
+                return TRUE;   
             }
             elseif ($query->num_rows() == 1)
             {
@@ -113,10 +130,40 @@ class Plugins {
                     $this->refresh_plugin_headers($name);
                     include_once self::$plugins_directory.$name."/".$name.".php";
                 }
+                else
+                {
+                    $this->refresh_plugin_headers($name);
+                }
             } 
         }   
     }
     
+    /**
+    * This little function will check if the database has plugins that don't exist
+    * and then it will remove them including their data because someone obviously
+    * deleted the files and doesn't care about society.
+    * 
+    */
+    private function clean_plugins_table()
+    {
+        $query = $this->CI->db->get("plugins");
+        $rows  = $query->result_array();
+        
+        foreach ($rows AS $plugin)
+        {
+            if ( !isset(self::$plugins[$plugin['plugin_system_name']]) )
+            {
+                $this->CI->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
+            }   
+        }
+        
+    }
+    
+    /**
+    * This plugin just checks to make sure our plugins array has the proper meta for each plugin
+    * 
+    * @param mixed $plugin
+    */
     private function refresh_plugin_headers($plugin)
     {
         $plugin_headers = $this->get_plugin_headers($plugin);
