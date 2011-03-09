@@ -68,9 +68,14 @@ class Plugins {
                 if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
                 {
                     self::$plugins[$name] = array(
-                        "filename" => $name.".php"
+                        "filename"            => $name.".php",
+                        "function"            => $name,
+                        "install_function"    => $name."_install",
+                        "activate_function"   => $name."_activate",
+                        "deactivate_function" => $name."_deactivate"
                     );
                     
+                    // Store our plugin headers for this particular plugin
                     $plugin_headers = $this->get_plugin_headers($name);
                     
                     foreach ($plugin_headers AS $k => $v)
@@ -107,14 +112,35 @@ class Plugins {
 		    preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
 		    preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
             
-            $arr = array(
-                'name' => $name[1],
-                'uri'  => $uri[1],
-                'version' => $version[1],
-                'description' => $description[1],
-                'author_name' => $author_name[1],
-                'author_uri'  => $author_uri[1]
-            );
+            if (isset($name[1]))
+            {
+                $arr['name'] = $name[1];
+            }
+            
+            if (isset($uri[1]))
+            {
+                $arr['uri'] = $uri[1];
+            }
+            
+            if (isset($version[1]))
+            {
+                $arr['version'] = $version[1];
+            }
+            
+            if (isset($description[1]))
+            {
+                $arr['description'] = $description[1];
+            }
+            
+            if (isset($author_name[1]))
+            {
+                $arr['author_name'] = $author_name[1];
+            }
+            
+            if (isset($author_uri[1]))
+            {
+                $arr['author_uri'] = $author_uri[1];
+            }
         }
             
         return $arr;
