@@ -12,6 +12,9 @@ I'm glad you asked. If you are familiar with Wordpress action and filter hooks, 
 * In your plugins make sure to utilise the add_action() to register callbacks to your plugin functions when run_action is called.
 * What next? Put the kettle on and kick the fuck back.
 
+## Example application  
+To see how the system works what better than an example application using a Markdown plugin I developed to show off the functionality of the library. It's located here: https://github.com/Vheissu/Ci-Plugin-System---Example-Plugin-and-Usage
+
 ## FAQ's
 
 1. **My grandma says that she doesn't understand how to use this library, where is the documentation?**  
