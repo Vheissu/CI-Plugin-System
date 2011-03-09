@@ -10,7 +10,7 @@
 class Plugins {
     
     // Codeigniter instance
-    private $CI;
+    protected $CI;
     
     // So. Much. Static.
     public static $plugins_directory, $instance, $hooks, $current_hook, $plugins;
@@ -95,12 +95,12 @@ class Plugins {
     * The number of plugins found
     * 
     */
-    public static function count_found_plugins()
+    public function count_found_plugins()
     {
         return count(self::$plugins);
     }
     
-    public static function count_activated_plugins()
+    public function count_activated_plugins()
     {
         return $this->CI->db->where('plugin_status', 1)->get('plugins')->num_rows();
     }
@@ -330,7 +330,7 @@ class Plugins {
     public static function run_action($name, $arguments = "")
     {
         // Oh, no you didn't. Are you trying to run an action hook that doesn't exist?
-        if ( !isset(self::$hooks[$name]) AND !is_array(self::$hooks[$name]) )
+        if ( !isset(self::$hooks[$name]) )
         {
             return $arguments;
         }
@@ -437,17 +437,17 @@ class Plugins {
 
 function add_action($name, $function, $priority=10)
 {
-    Plugins::add_action($name, $function, $priority);
+    return Plugins::add_action($name, $function, $priority);
 }
 
 function run_action($name, $arguments = "")
 {
-    Plugins::run_action($name, $arguments);
+    return Plugins::run_action($name, $arguments);
 }
 
 function remove_action($name, $function, $priority=10)
 {
-    Plugins::remove_action($name, $function, $priority);
+    return Plugins::remove_action($name, $function, $priority);
 }
 
 function set_plugin_dir($directory)
@@ -467,12 +467,12 @@ function deactivate_plugin($name)
 
 function count_found_plugins()
 {
-    Plugins::count_found_plugins();
+    return Plugins::instance()->count_found_plugins();
 }
 
 function count_activated_plugins()
 {
-    Plugins::count_activated_plugins();
+    return Plugins::instance()->count_activated_plugins();
 }
 
 function debug_plugins()
