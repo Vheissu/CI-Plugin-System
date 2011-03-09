@@ -37,6 +37,7 @@ class Plugins {
         
         // Load all plugins
         $this->load_plugins();
+        $this->register_plugins();
     }
     
     /**
@@ -75,13 +76,8 @@ class Plugins {
                         "deactivate_function" => $name."_deactivate"
                     );
                     
-                    // Store our plugin headers for this particular plugin
-                    $plugin_headers = $this->get_plugin_headers($name);
-                    
-                    foreach ($plugin_headers AS $k => $v)
-                    {
-                        self::$plugins[$name]['plugin_info'][$k] = $v;  
-                    }  
+                    // Stores meta of the plugin if not already there
+                    $this->refresh_plugin_headers($name);  
                 }
     		}
     		else
@@ -89,6 +85,53 @@ class Plugins {
 				return TRUE;	
     		}
     	}
+    }
+    
+    /**
+    * This bad boy function will help register and include plugin files
+    * depending on their status in the database if they're enabled or not.
+    * 
+    */
+    private function register_plugins()
+    {
+        $this->CI->load->database();
+        
+        foreach (self::$plugins AS $name => $data)
+        {
+            $query = $this->CI->db->where("plugin_system_name", $name)->get("plugins");
+            $row   = $query->row();
+            
+            // Plugin doesn't exist, add it.
+            if ($query->num_rows() == 0)
+            {
+                die('zero');   
+            }
+            elseif ($query->num_rows() == 1)
+            {
+                if ($row->plugin_status == 1)
+                {
+                    $this->refresh_plugin_headers($name);
+                    include_once self::$plugins_directory.$name."/".$name.".php";
+                }
+            } 
+        }   
+    }
+    
+    private function refresh_plugin_headers($plugin)
+    {
+        $plugin_headers = $this->get_plugin_headers($plugin);
+        
+        foreach ($plugin_headers AS $k => $v)
+        {
+            if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
+            {
+                self::$plugins[$plugin]['plugin_info'][$k] = $v;
+            }
+            else
+            {
+                return true;
+            }  
+        } 
     }
     
     /**

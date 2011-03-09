@@ -14,10 +14,6 @@ add_action('render', 'hello_world', 10);
 // Register another action which will trigger our string function
 add_action('render.string', 'hello_world_string', 10);
 
-// Simulate an action being triggered
-run_action('render');
-run_action('render.string', "Surprise! I'm being displayed from an action");
-
 function hello_world()
 {
     echo "Hello World!";
