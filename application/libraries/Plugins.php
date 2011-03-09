@@ -124,11 +124,7 @@ class Plugins {
                 if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
                 {
                     self::$plugins[$name] = array(
-                        "filename"            => $name.".php",
-                        "function"            => $name,
-                        "install_function"    => $name."_install",
-                        "activate_function"   => $name."_activate",
-                        "deactivate_function" => $name."_deactivate"
+                        "function"            => $name
                     );
                     
                     // Stores meta of the plugin if not already there
@@ -358,8 +354,9 @@ class Plugins {
             }
         }
         
-        // No running hook!
+        // No hook is running any more
         self::$current_hook = '';
+        
         return $arguments;
     }  
 	
@@ -379,7 +376,7 @@ class Plugins {
         }
         
         // Remove the action hook from our hooks array
-        unset( self::$hooks[$name][$priority][$function] );
+        unset(self::$hooks[$name][$priority][$function]);
     }
     
     /**
@@ -457,12 +454,12 @@ function set_plugin_dir($directory)
 
 function activate_plugin($name)
 {
-    Plugins::activate_plugin($name);
+    return Plugins::activate_plugin($name);
 }
 
 function deactivate_plugin($name)
 {
-    Plugins::deactivate_plugin($name);
+    return Plugins::deactivate_plugin($name);
 }
 
 function count_found_plugins()
