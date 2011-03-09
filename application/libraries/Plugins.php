@@ -94,18 +94,33 @@ class Plugins {
         $this->trigger_deactivate_plugin($name);
     }
     
+    /**
+    * Triggers the functionname_activate function when a plugin is activated
+    * 
+    * @param mixed $name
+    */
     public function trigger_activate_plugin($name)
     {
         // Call plugin activate function
         @call_user_func($name."_activate");
     }
     
+    /**
+    * Triggers the functionname_deactivate function when a plugin is deactivated
+    * 
+    * @param mixed $name
+    */
     public function trigger_deactivate_plugin($name)
     {
         // Call our plugin deactivate function
         @call_user_func($name."_deactivate");
     }
     
+    /**
+    * Triggers the functionname_install function when a plugin is first installed
+    * 
+    * @param mixed $name
+    */
     public function trigger_install_plugin($name)
     {
         $this->register_plugins();
@@ -147,7 +162,8 @@ class Plugins {
                 if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
                 {
                     self::$plugins[$name] = array(
-                        "function"            => $name
+                        "function"    => $name,
+                        "is_included" => "false"
                     );
                     
                     // Stores meta of the plugin if not already there
@@ -198,7 +214,14 @@ class Plugins {
                 if ($row->plugin_status == 1)
                 {
                     $this->refresh_plugin_headers($name);
-                    include_once self::$plugins_directory.$name."/".$name.".php";
+                    if (@include_once self::$plugins_directory.$name."/".$name.".php")
+                    {
+                        self::$plugins[$name]['is_included'] = "true";
+                    }
+                    else
+                    {
+                        self::$plugins[$name]['is_included'] = "false";
+                    }
                 }
                 else
                 {
