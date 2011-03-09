@@ -54,6 +54,24 @@ class Plugins {
     {
     	self::$plugins_directory = trim($directory);
     }
+    
+    /**
+    * Activates a plugin for use as long as it's valid
+    * 
+    * @param mixed $plugin
+    */
+    public static function activate_plugin($name)
+    {
+        if ( !isset(self::$plugins[$name]) )
+        {
+            return TRUE;
+        }
+        else
+        {
+            $data = array("plugin_status" => 1);
+            $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
+        }
+    }
 	
     /**
     * Takes care of loading our plugins and making them usable, etc.
@@ -392,6 +410,11 @@ function remove_action($name, $function, $priority=10)
 function set_plugin_dir($directory)
 {
     Plugins::set_plugin_dir($directory);
+}
+
+function activate_plugin($name)
+{
+    Plugins::activate_plugin($name);
 }
 
 function debug_plugins()
