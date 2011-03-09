@@ -9,10 +9,7 @@
 */
 
 // Run our hello world function when the render thread event is called
-add_action('render', 'hello_world', 10);
-
-// Register another action which will trigger our string function
-add_action('render.string', 'hello_world_string', 10);
+add_action('render.page', 'hello_world', 10);
 
 function hello_world()
 {
