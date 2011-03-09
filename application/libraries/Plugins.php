@@ -479,5 +479,3 @@ function debug_plugins()
 {
     Plugins::debug_plugins();
 }
-
-?>
