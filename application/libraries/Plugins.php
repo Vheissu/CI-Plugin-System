@@ -90,6 +90,20 @@ class Plugins {
             $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
     }
+    
+    /**
+    * The number of plugins found
+    * 
+    */
+    public static function count_found_plugins()
+    {
+        return count(self::$plugins);
+    }
+    
+    public static function count_activated_plugins()
+    {
+        return $this->CI->db->where('plugin_status', 1)->get('plugins')->num_rows();
+    }
 	
     /**
     * Takes care of loading our plugins and making them usable, etc.
@@ -438,6 +452,16 @@ function activate_plugin($name)
 function deactivate_plugin($name)
 {
     Plugins::deactivate_plugin($name);
+}
+
+function count_found_plugins()
+{
+    Plugins::count_found_plugins();
+}
+
+function count_activated_plugins()
+{
+    Plugins::count_activated_plugins();
 }
 
 function debug_plugins()
