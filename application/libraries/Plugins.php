@@ -60,7 +60,7 @@ class Plugins {
     * 
     * @param mixed $plugin
     */
-    public static function activate_plugin($name)
+    public function activate_plugin($name)
     {
         if ( !isset(self::$plugins[$name]) )
         {
@@ -71,6 +71,8 @@ class Plugins {
             $data = array("plugin_status" => 1);
             $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
+        $this->register_plugins();
+        $this->trigger_activate_plugin($name);
     }
         
     /**
@@ -78,7 +80,7 @@ class Plugins {
     * 
     * @param mixed $plugin
     */
-    public static function deactivate_plugin($name)
+    public function deactivate_plugin($name)
     {
         if ( !isset(self::$plugins[$name]) )
         {
@@ -89,6 +91,19 @@ class Plugins {
             $data = array("plugin_status" => 0);
             $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
+        $this->trigger_deactivate_plugin($name);
+    }
+    
+    public function trigger_activate_plugin($name)
+    {
+        // Call plugin activate function
+        @call_user_func($name."_activate");
+    }
+    
+    public function trigger_deactivate_plugin($name)
+    {
+        // Call our plugin deactivate function
+        @call_user_func($name."_deactivate");
     }
     
     /**
@@ -138,6 +153,14 @@ class Plugins {
     	}
     }
     
+    private function trigger_install($name)
+    {
+        $this->register_plugins();
+        
+        // We're installing so call the install function
+        call_user_func($name."_install");
+    }
+    
     /**
     * This bad boy function will help register and include plugin files
     * depending on their status in the database if they're enabled or not.
@@ -167,7 +190,8 @@ class Plugins {
                 );
                 $this->CI->db->insert('plugins', $data);
                 
-                return TRUE;   
+                // Trigger an install event
+                $this->trigger_install($name);   
             }
             elseif ($query->num_rows() == 1)
             {
@@ -454,12 +478,12 @@ function set_plugin_dir($directory)
 
 function activate_plugin($name)
 {
-    return Plugins::activate_plugin($name);
+    return Plugins::instance()->activate_plugin($name);
 }
 
 function deactivate_plugin($name)
 {
-    return Plugins::deactivate_plugin($name);
+    return Plugins::instance()->deactivate_plugin($name);
 }
 
 function count_found_plugins()

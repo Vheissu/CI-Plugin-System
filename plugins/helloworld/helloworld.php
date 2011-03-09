@@ -27,10 +27,12 @@ function hello_world_string($string)
 function helloworld_install()
 {
     // Install logic is run when plugin is installed
+    return true;
 }
 
 function helloworld_activate()
 {
-    // When plugin is activated   
+    // When plugin is activated
+    return true;   
 }
 

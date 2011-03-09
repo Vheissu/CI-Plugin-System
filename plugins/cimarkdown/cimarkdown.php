@@ -14,12 +14,27 @@ include_once "markdown.php";
 // When message text is parsed, call cimarkdown
 add_action("parse.message", "cimarkdown", 10);
 
+/**
+* Function called when plugin first activated
+* 
+*/
 function cimarkdown_activate()
 {
+    echo "Activated!";
 }
 
+/**
+* Function called when plugin deactivated
+* 
+*/
 function cimarkdown_deactivate()
 {
+    echo "Deactiviated!";
+}
+
+function cimarkdown_install()
+{
+    echo "Install!";
 }
 
 function cimarkdown($text)
