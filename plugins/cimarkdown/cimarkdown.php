@@ -20,7 +20,7 @@ add_action("parse.message", "cimarkdown", 10);
 */
 function cimarkdown_activate()
 {
-    echo "Activated!";
+    return true;
 }
 
 /**
@@ -29,12 +29,12 @@ function cimarkdown_activate()
 */
 function cimarkdown_deactivate()
 {
-    echo "Deactiviated!";
+    return true;
 }
 
 function cimarkdown_install()
 {
-    echo "Install!";
+    return true;
 }
 
 function cimarkdown($text)

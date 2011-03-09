@@ -17,13 +17,6 @@ function hello_world()
     echo "<br /><br />";
 }
 
-function hello_world_string($string)
-{
-    echo "Hello World! I am a string function with a dynamic value of: ". $string;
-    echo "<br /><br />";
-    echo "Uh, oh! the string is manipulated to be call caps! see? ". strtoupper($string);
-}
-
 function helloworld_install()
 {
     // Install logic is run when plugin is installed
@@ -34,5 +27,11 @@ function helloworld_activate()
 {
     // When plugin is activated
     return true;   
+}
+
+function helloworld_deactivate()
+{
+    // when plugin is deactivated
+    return true;
 }
 
