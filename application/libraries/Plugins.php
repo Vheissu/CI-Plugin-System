@@ -62,6 +62,7 @@ class Plugins {
     */
     public function activate_plugin($name)
     {
+        // If plugin doesn't exist, just pretend nothing happened and return true
         if ( !isset(self::$plugins[$name]) )
         {
             return TRUE;
@@ -355,10 +356,26 @@ class Plugins {
             return true;
         }
         
-        // Store the action hook in the $hooks array
-        self::$hooks[$name][$priority][$function] = array(
-            "function" => $function
-        );
+        /**
+        * Allows us to iterate through multiple action hooks.
+        */
+        if (is_array($name))
+        {
+            foreach ($name AS $name)
+            {
+                // Store the action hook in the $hooks array
+                self::$hooks[$name][$priority][$function] = array(
+                    "function" => $function
+                );
+            }
+        }
+        else
+        {
+            // Store the action hook in the $hooks array
+            self::$hooks[$name][$priority][$function] = array(
+                "function" => $function
+            );
+        }
         
         return true;
     }
@@ -419,7 +436,7 @@ class Plugins {
         // If the action hook doesn't, just return true
         if ( !isset(self::$hooks[$name][$priority][$function]) )
         {
-            return true;
+            return TRUE;
         }
         
         // Remove the action hook from our hooks array
@@ -433,6 +450,23 @@ class Plugins {
     public static function current_hook()
     {
         return self::$current_hook;
+    }
+    
+    /**
+    * Does a particular action hook even exist?
+    * 
+    * @param mixed $name
+    */
+    public static function action_exists($name)
+    {
+        if ( isset(self::$hooks[$name]) )
+        {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
     }
     
     /**
@@ -492,6 +526,11 @@ function run_action($name, $arguments = "")
 function remove_action($name, $function, $priority=10)
 {
     return Plugins::remove_action($name, $function, $priority);
+}
+
+function action_exists($name)
+{
+    return Plugins::action_exists($name);
 }
 
 function set_plugin_dir($directory)
