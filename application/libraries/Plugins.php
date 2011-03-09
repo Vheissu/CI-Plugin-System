@@ -72,6 +72,24 @@ class Plugins {
             $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
     }
+        
+    /**
+    * Deactivates a plugin a long as it's valid
+    * 
+    * @param mixed $plugin
+    */
+    public static function deactivate_plugin($name)
+    {
+        if ( !isset(self::$plugins[$name]) )
+        {
+            return TRUE;
+        }
+        else
+        {
+            $data = array("plugin_status" => 0);
+            $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
+        }
+    }
 	
     /**
     * Takes care of loading our plugins and making them usable, etc.
@@ -415,6 +433,11 @@ function set_plugin_dir($directory)
 function activate_plugin($name)
 {
     Plugins::activate_plugin($name);
+}
+
+function deactivate_plugin($name)
+{
+    Plugins::deactivate_plugin($name);
 }
 
 function debug_plugins()
