@@ -211,6 +211,7 @@ class Plugins {
             }
             elseif ($query->num_rows() == 1)
             {
+                // If plugin was found and it's activated
                 if ($row->plugin_status == 1)
                 {
                     $this->refresh_plugin_headers($name);
@@ -282,7 +283,6 @@ class Plugins {
                 $this->CI->db->where('plugin_system_name', $plugin)->update('plugins', $data);
             }  
         }
-         
     }
     
     /**
@@ -308,32 +308,32 @@ class Plugins {
             
             if (isset($name[1]))
             {
-                $arr['plugin_name'] = $name[1];
+                $arr['plugin_name'] = trim($name[1]);
             }
             
             if (isset($uri[1]))
             {
-                $arr['plugin_uri'] = $uri[1];
+                $arr['plugin_uri'] = trim($uri[1]);
             }
             
             if (isset($version[1]))
             {
-                $arr['plugin_version'] = $version[1];
+                $arr['plugin_version'] = trim($version[1]);
             }
             
             if (isset($description[1]))
             {
-                $arr['plugin_description'] = $description[1];
+                $arr['plugin_description'] = trim($description[1]);
             }
             
             if (isset($author_name[1]))
             {
-                $arr['plugin_author'] = $author_name[1];
+                $arr['plugin_author'] = trim($author_name[1]);
             }
             
             if (isset($author_uri[1]))
             {
-                $arr['plugin_author_uri'] = $author_uri[1];
+                $arr['plugin_author_uri'] = trim($author_uri[1]);
             }
         }
             
