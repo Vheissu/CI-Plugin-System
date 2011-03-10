@@ -56,6 +56,24 @@ class Plugins {
     }
     
     /**
+    * Fetch activated plugins from the database
+    * 
+    */
+    public function fetch_activated_plugins()
+    {
+        $query = $this->CI->db->where("plugin_status", 1)->get('plugins')->result_array();
+        
+        foreach ($query AS $plugin)
+        {
+            if ( isset(self::$plugins[$plugin['plugin_system_name']]) )
+            {
+                self::$plugins[$plugin['plugin_system_name']]['activated'];
+            }
+        }
+        
+    }
+    
+    /**
     * Activates a plugin for use as long as it's valid
     * 
     * @param mixed $plugin
