@@ -35,14 +35,13 @@ class Plugins {
             self::$plugins_directory = FCPATH . "plugins/";   
         }
         
-        // Load all plugins
-        $this->load_plugins();
-        
-        // Register plugins
-        $this->register_plugins();
-        
-        // Clean out old plugins that don't exist
-        $this->clean_plugins_table();
+        /**
+        * 1. Look through the plugins directory for plugins and add them to the $plugins variable
+        * 2. 
+        * 
+        * @var Plugins
+        */
+        $this->init_tasks();
     }
     
     /**
@@ -52,11 +51,126 @@ class Plugins {
     */
     public static function set_plugin_dir($directory)
     {
-    	self::$plugins_directory = trim($directory);
+        self::$plugins_directory = trim($directory);
+    }
+    
+    
+    /**
+    * Called by the constructor on load to load plugins, clean old plugin data, etc.
+    * 
+    */
+    private function init_tasks()
+    {
+        /**
+        * Load all plugins from the plugin directory and add them to the plugins array. 
+        * Caching will be integrated into this process later on to save resources.
+        * 
+        * @var Plugins
+        */
+        $this->load_plugins();
+        
+        // Register
+        $this->register_plugins();
+        
+        // Clean out old plugins that don't exist any more
+        $this->clean_plugins_table();        
     }
     
     /**
-    * Fetch activated plugins from the database
+    * Takes care of loading our plugins and making them usable, etc.
+    * One lone private function in a sea of static functions.
+    * 
+    */
+    private function load_plugins()
+    {
+        // Only go one deep as the plugin file is the same name as the folder
+        $plugins = directory_map(self::$plugins_directory, 1);
+        
+        // Iterate through every plugin found
+        foreach ($plugins AS $key => $name)
+        {                       
+            // If the plugin hasn't already been added and isn't a file
+            if ( !isset(self::$plugins[$name]) AND !stripos($name, ".") )
+            {                
+                // Make sure a valid plugin file by the same name as the folder exists
+                if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
+                {
+                    // Register the plugin to this class as first unactivated
+                    self::$plugins[$name] = array(
+                        "function"    => $name,
+                        "is_included" => "false",
+                        "unactivated" => "true"
+                    );
+                    
+                    // Get the plugin header information for all found plugins
+                    $this->refresh_plugin_headers($name);  
+                }
+            }
+            else
+            {
+                return TRUE;    
+            }
+        }
+    }
+    
+    /**
+    * This bad boy function will help register and include plugin files
+    * depending on their status in the database if they're enabled or not.
+    * 
+    */
+    private function register_plugins()
+    {
+        $this->CI->load->database();
+        
+        foreach (self::$plugins AS $name => $data)
+        {
+            $query = $this->CI->db->where("plugin_system_name", $name)->get("plugins");
+            $row   = $query->row();
+            
+            // Plugin doesn't exist, add it.
+            if ($query->num_rows() == 0)
+            {
+                // The plugin information being added to the database
+                $data = array(
+                    "plugin_system_name" => $name,
+                    "plugin_name"        => trim($data['plugin_info']['name']),
+                    "plugin_uri"         => trim($data['plugin_info']['uri']),
+                    "plugin_version"     => trim($data['plugin_info']['version']),
+                    "plugin_description" => trim($data['plugin_info']['description']),
+                    "plugin_author"      => trim($data['plugin_info']['author_name']),
+                    "plugin_author_uri"  => trim($data['plugin_info']['author_uri']),
+                    "plugin_status"      => 0
+                );
+                $this->CI->db->insert('plugins', $data);
+                
+                // Trigger an install event
+                $this->trigger_install_plugin($name);   
+            }
+            elseif ($query->num_rows() == 1)
+            {
+                // If plugin was found and it's activated
+                if ($row->plugin_status == 1)
+                {
+                    $this->refresh_plugin_headers($name);
+                    if (@include_once self::$plugins_directory.$name."/".$name.".php")
+                    {
+                        self::$plugins[$name]['is_included'] = "true";
+                    }
+                    else
+                    {
+                        self::$plugins[$name]['is_included'] = "false";
+                    }
+                }
+                else
+                {
+                    $this->refresh_plugin_headers($name);
+                }
+            } 
+        }   
+    }
+    
+    /**
+    * Fetch activated plugins from the database and change their status in the plugins array
     * 
     */
     private function fetch_activated_plugins()
@@ -161,95 +275,6 @@ class Plugins {
     {
         return $this->CI->db->where('plugin_status', 1)->get('plugins')->num_rows();
     }
-	
-    /**
-    * Takes care of loading our plugins and making them usable, etc.
-    * One lone private function in a sea of static functions.
-    * 
-    */
-    private function load_plugins()
-    {
-    	// Only go one deep as the plugin file is the same name as the folder
-    	$plugins = directory_map(self::$plugins_directory, 1);
-    	
-    	// Iterate through every plugin found
-    	foreach ($plugins AS $key => $name)
-    	{               		
-    		// If the plugin hasn't already been added and isn't a file
-    		if ( !isset(self::$plugins[$name]) AND !stripos($name, ".") )
-    		{                
-                if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
-                {
-                    self::$plugins[$name] = array(
-                        "function"    => $name,
-                        "is_included" => "false"
-                    );
-                    
-                    // Stores meta of the plugin if not already there
-                    $this->refresh_plugin_headers($name);  
-                }
-    		}
-    		else
-    		{
-				return TRUE;	
-    		}
-    	}
-    }
-    
-    /**
-    * This bad boy function will help register and include plugin files
-    * depending on their status in the database if they're enabled or not.
-    * 
-    */
-    private function register_plugins()
-    {
-        $this->CI->load->database();
-        
-        foreach (self::$plugins AS $name => $data)
-        {
-            $query = $this->CI->db->where("plugin_system_name", $name)->get("plugins");
-            $row   = $query->row();
-            
-            // Plugin doesn't exist, add it.
-            if ($query->num_rows() == 0)
-            {
-                $data = array(
-                    "plugin_system_name" => $name,
-                    "plugin_name"        => trim($data['plugin_info']['name']),
-                    "plugin_uri"         => trim($data['plugin_info']['uri']),
-                    "plugin_version"     => trim($data['plugin_info']['version']),
-                    "plugin_description" => trim($data['plugin_info']['description']),
-                    "plugin_author"      => trim($data['plugin_info']['author_name']),
-                    "plugin_author_uri"  => trim($data['plugin_info']['author_uri']),
-                    "plugin_status"      => 0
-                );
-                $this->CI->db->insert('plugins', $data);
-                
-                // Trigger an install event
-                $this->trigger_install_plugin($name);   
-            }
-            elseif ($query->num_rows() == 1)
-            {
-                // If plugin was found and it's activated
-                if ($row->plugin_status == 1)
-                {
-                    $this->refresh_plugin_headers($name);
-                    if (@include_once self::$plugins_directory.$name."/".$name.".php")
-                    {
-                        self::$plugins[$name]['is_included'] = "true";
-                    }
-                    else
-                    {
-                        self::$plugins[$name]['is_included'] = "false";
-                    }
-                }
-                else
-                {
-                    $this->refresh_plugin_headers($name);
-                }
-            } 
-        }   
-    }
     
     /**
     * This little function will check if the database has plugins that don't exist
@@ -262,14 +287,21 @@ class Plugins {
         $query = $this->CI->db->get("plugins");
         $rows  = $query->result_array();
         
-        foreach ($rows AS $plugin)
+        // If we have plugins in the database
+        if ($query->num_rows() >= 1)
         {
-            if ( !isset(self::$plugins[$plugin['plugin_system_name']]) )
+            // Iterate through every plugin pulled from the database and check it exists
+            foreach ($rows AS $plugin)
             {
-                $this->CI->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
-            }   
+                // If the plugin isn't set in our plugins array, it doesn't exist, so remove it.
+                if ( !isset(self::$plugins[$plugin['plugin_system_name']]) )
+                {
+                    $this->CI->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
+                }   
+            }
         }
         
+        return TRUE;
     }
     
     /**
@@ -382,17 +414,13 @@ class Plugins {
             foreach ($name AS $name)
             {
                 // Store the action hook in the $hooks array
-                self::$hooks[$name][$priority][$function] = array(
-                    "function" => $function
-                );
+                self::$hooks[$name][$priority][$function] = array("function" => $function);
             }
         }
         else
         {
             // Store the action hook in the $hooks array
-            self::$hooks[$name][$priority][$function] = array(
-                "function" => $function
-            );
+            self::$hooks[$name][$priority][$function] = array("function" => $function);
         }
         
         return true;
