@@ -10,7 +10,7 @@
 class Plugins {
     
     // Codeigniter instance
-    protected $CI;
+    private $CI;
     
     // So. Much. Static.
     public static $plugins_directory, $instance, $hooks, $current_hook, $plugins;
@@ -59,7 +59,7 @@ class Plugins {
     * Fetch activated plugins from the database
     * 
     */
-    public function fetch_activated_plugins()
+    private function fetch_activated_plugins()
     {
         $query = $this->CI->db->where("plugin_status", 1)->get('plugins')->result_array();
         
@@ -164,10 +164,10 @@ class Plugins {
 	
     /**
     * Takes care of loading our plugins and making them usable, etc.
-    * One lone protected function in a sea of static functions.
+    * One lone private function in a sea of static functions.
     * 
     */
-    protected function load_plugins()
+    private function load_plugins()
     {
     	// Only go one deep as the plugin file is the same name as the folder
     	$plugins = directory_map(self::$plugins_directory, 1);
@@ -309,7 +309,7 @@ class Plugins {
     * plugin file.
     * 
     */
-    protected function get_plugin_headers($plugin)
+    private function get_plugin_headers($plugin)
     {
         $arr = "";
                 
