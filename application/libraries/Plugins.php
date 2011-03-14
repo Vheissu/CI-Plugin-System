@@ -16,18 +16,20 @@ class Plugins {
     public static $plugins_directory, $instance, $hooks, $current_hook, $plugins;
     
     public function __construct()
-    {
+    {        
         // Store instance of this class
         self::$instance =& $this;
-        
-    	// Store our Codeigniter instance
+
+        // Store the Codeigniter instance in our CI variable
         $this->CI =& get_instance();
         
+        $this->output->enable_profiler(TRUE);
+        
         // Load the directory helper so we can parse for plugins in the plugin directory
-        $this->CI->load->helper('directory');
+        $this->load->helper('directory');
         
         // Load the file helper to read plugin files
-        $this->CI->load->helper('file');
+        $this->load->helper('file');
         
         // Set the plugins directory if not already set
         if ( empty(self::$plugins_directory) )
@@ -45,6 +47,20 @@ class Plugins {
     }
     
     /**
+    * This function lets us access Codeigniter instance objects like;
+    * helpers, libraries and core functions without having to prefix
+    * our faux Codeigniter instance variable 'CI' we can load Codeigniter
+    * libraries and other goodness like we would normally within controllers
+    * and other things.
+    * 
+    * @param mixed $bleh
+    */
+    public function __get($bleh)
+    {
+        return $this->CI->$bleh;
+    }
+    
+    /**
     * Store the location of where our plugins are located
     * 
     * @param mixed $directory
@@ -53,7 +69,6 @@ class Plugins {
     {
         self::$plugins_directory = trim($directory);
     }
-    
     
     /**
     * Called by the constructor on load to load plugins, clean old plugin data, etc.
@@ -73,7 +88,7 @@ class Plugins {
         $this->register_plugins();
         
         // Clean out old plugins that don't exist any more
-        $this->clean_plugins_table();        
+        $this->clean_plugins_table();      
     }
     
     /**
@@ -99,7 +114,7 @@ class Plugins {
                     self::$plugins[$name] = array(
                         "function"    => $name,
                         "is_included" => "false",
-                        "unactivated" => "true"
+                        "activated"   => "false"
                     );
                     
                     // Get the plugin header information for all found plugins
@@ -120,11 +135,13 @@ class Plugins {
     */
     private function register_plugins()
     {
-        $this->CI->load->database();
+        $tempcount = 0;
+        
+        $this->load->database();
         
         foreach (self::$plugins AS $name => $data)
-        {
-            $query = $this->CI->db->where("plugin_system_name", $name)->get("plugins");
+        {  
+            $query = $this->db->where("plugin_system_name", $name)->get("plugins");
             $row   = $query->row();
             
             // Plugin doesn't exist, add it.
@@ -141,7 +158,7 @@ class Plugins {
                     "plugin_author_uri"  => trim($data['plugin_info']['author_uri']),
                     "plugin_status"      => 0
                 );
-                $this->CI->db->insert('plugins', $data);
+                $this->db->insert('plugins', $data);
                 
                 // Trigger an install event
                 $this->trigger_install_plugin($name);   
@@ -155,6 +172,7 @@ class Plugins {
                     if (@include_once self::$plugins_directory.$name."/".$name.".php")
                     {
                         self::$plugins[$name]['is_included'] = "true";
+                        self::$plugins[$name]['activated']   = "true";
                     }
                     else
                     {
@@ -166,7 +184,7 @@ class Plugins {
                     $this->refresh_plugin_headers($name);
                 }
             } 
-        }   
+        }
     }
     
     /**
@@ -175,7 +193,7 @@ class Plugins {
     */
     private function fetch_activated_plugins()
     {
-        $query = $this->CI->db->where("plugin_status", 1)->get('plugins')->result_array();
+        $query = $this->db->where("plugin_status", 1)->get('plugins')->result_array();
         
         foreach ($query AS $plugin)
         {
@@ -202,7 +220,7 @@ class Plugins {
         else
         {
             $data = array("plugin_status" => 1);
-            $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
+            $this->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
         $this->register_plugins();
         $this->trigger_activate_plugin($name);
@@ -222,7 +240,7 @@ class Plugins {
         else
         {
             $data = array("plugin_status" => 0);
-            $this->CI->db->where('plugin_system_name', $name)->update('plugins', $data);
+            $this->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
         $this->trigger_deactivate_plugin($name);
     }
@@ -273,7 +291,7 @@ class Plugins {
     
     public function count_activated_plugins()
     {
-        return $this->CI->db->where('plugin_status', 1)->get('plugins')->num_rows();
+        return $this->db->where('plugin_status', 1)->get('plugins')->num_rows();
     }
     
     /**
@@ -284,7 +302,7 @@ class Plugins {
     */
     private function clean_plugins_table()
     {
-        $query = $this->CI->db->get("plugins");
+        $query = $this->db->get("plugins");
         $rows  = $query->result_array();
         
         // If we have plugins in the database
@@ -296,7 +314,7 @@ class Plugins {
                 // If the plugin isn't set in our plugins array, it doesn't exist, so remove it.
                 if ( !isset(self::$plugins[$plugin['plugin_system_name']]) )
                 {
-                    $this->CI->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
+                    $this->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
                 }   
             }
         }
@@ -306,7 +324,7 @@ class Plugins {
     
     /**
     * This plugin just checks to make sure our plugins array has the proper meta for each plugin
-    * 
+    * @todo Refactor function as it is causing too many queries to be run
     * @param mixed $plugin
     */
     private function refresh_plugin_headers($plugin)
@@ -325,13 +343,13 @@ class Plugins {
             }
             
             // Get our plugins to compare meta
-            $query = $this->CI->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+            $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
             
             // If plugin value is different and we're not updating the plugin name
             if (self::$plugins[$plugin]['plugin_info'][$k] != $query->$k AND !stripos($k, "plugin_name"))
             {
                 $data[$k] = trim($v);
-                $this->CI->db->where('plugin_system_name', $plugin)->update('plugins', $data);
+                $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
             }  
         }
     }
@@ -522,6 +540,9 @@ class Plugins {
     */
     public static function debug_plugins()
     {
+        echo "<p><strong>Plugins count</strong></p>";
+        echo count(self::$plugins);
+        
 		echo "<p><strong>Plugins found</strong></p>";
         
         if (self::$plugins)
