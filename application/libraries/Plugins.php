@@ -21,7 +21,7 @@ class Plugins {
         self::$instance =& $this;
 
         // Store the Codeigniter instance in our CI variable
-        $this->CI =& get_instance();
+        $this->CI = get_instance();
         
         $this->output->enable_profiler(TRUE);
         
@@ -84,7 +84,7 @@ class Plugins {
         */
         $this->load_plugins();
         
-        // Register
+        // Register all found plugins if they are activated, etc.
         $this->register_plugins();
         
         // Clean out old plugins that don't exist any more
@@ -118,7 +118,7 @@ class Plugins {
                     );
                     
                     // Get the plugin header information for all found plugins
-                    $this->refresh_plugin_headers($name);  
+                    //$this->refresh_plugin_headers($name);  
                 }
             }
             else
@@ -135,8 +135,6 @@ class Plugins {
     */
     private function register_plugins()
     {
-        $tempcount = 0;
-        
         $this->load->database();
         
         foreach (self::$plugins AS $name => $data)
@@ -168,9 +166,9 @@ class Plugins {
                 // If plugin was found and it's activated
                 if ($row->plugin_status == 1)
                 {
-                    $this->refresh_plugin_headers($name);
                     if (@include_once self::$plugins_directory.$name."/".$name.".php")
                     {
+                        $this->refresh_plugin_headers($name);
                         self::$plugins[$name]['is_included'] = "true";
                         self::$plugins[$name]['activated']   = "true";
                     }
@@ -341,17 +339,17 @@ class Plugins {
             {
                 return true;
             }
-            
-            // Get our plugins to compare meta
-            $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
-            
-            // If plugin value is different and we're not updating the plugin name
-            if (self::$plugins[$plugin]['plugin_info'][$k] != $query->$k AND !stripos($k, "plugin_name"))
-            {
-                $data[$k] = trim($v);
-                $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
-            }  
         }
+        
+        // Get our plugins to compare meta
+        $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+        
+        // If plugin value is different and we're not updating the plugin name
+        if (self::$plugins[$plugin]['plugin_info'][$k] != $query->$k AND !stripos($k, "plugin_name"))
+        {
+            $data[$k] = trim($v);
+            $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
+        } 
     }
     
     /**
