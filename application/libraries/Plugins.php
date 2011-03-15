@@ -37,12 +37,7 @@ class Plugins {
             self::$plugins_directory = FCPATH . "plugins/";   
         }
         
-        /**
-        * 1. Look through the plugins directory for plugins and add them to the $plugins variable
-        * 2. 
-        * 
-        * @var Plugins
-        */
+        // Fetch plugins, load them and stuff
         $this->init_tasks();
     }
     
@@ -216,7 +211,6 @@ class Plugins {
             $data = array("plugin_status" => 1);
             $this->db->where('plugin_system_name', $name)->update('plugins', $data);
         }
-        $this->register_plugins();
         $this->trigger_activate_plugin($name);
     }
         
@@ -267,9 +261,7 @@ class Plugins {
     * @param mixed $name
     */
     public function trigger_install_plugin($name)
-    {
-        $this->register_plugins();
-        
+    {        
         // Call our plugin deactivate function
         @call_user_func($name."_install");
     }
@@ -325,6 +317,7 @@ class Plugins {
     {
         $arr = "";
         
+        // Iterate over all plugins
         foreach (self::$plugins AS $plugin => $value )
         {        
             // Load the plugin we want
@@ -368,28 +361,35 @@ class Plugins {
                 {
                     $arr['plugin_author_uri'] = trim($author_uri[1]);
                 }
-            }
-            
-            foreach ($arr AS $k => $v)
-            {
-                if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
+                
+                // For every plugin header item
+                foreach ($arr AS $k => $v)
                 {
-                    self::$plugins[$plugin]['plugin_info'][$k] = trim($v);
+                    // If the key doesn't exist or the value is not the same, update the array
+                    if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
+                    {
+                        self::$plugins[$plugin]['plugin_info'][$k] = trim($v);
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
-                else
+                
+                // Get the current plugin from the database
+                $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+                
+                // If plugin value is different and we're not updating the plugin name
+                if ( self::$plugins[$plugin]['plugin_info'][$k] != $query->$k )
                 {
-                    return true;
+                    // Ignore plugin name
+                    if (!stripos($k, "plugin_name"))
+                    {
+                        $data[$k] = trim($v);
+                        $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
+                    }
                 }
-            }
-            
-            // Get our plugins to compare meta
-            $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
-            
-            // If plugin value is different and we're not updating the plugin name
-            if (self::$plugins[$plugin]['plugin_info'][$k] != $query->$k AND !stripos($k, "plugin_name"))
-            {
-                $data[$k] = trim($v);
-                $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
+                
             }
         } 
     }
