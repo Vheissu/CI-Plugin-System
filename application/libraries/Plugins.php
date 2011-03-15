@@ -14,7 +14,10 @@ class Plugins {
     private $CI;
     
     // So. Much. Static.
-    public static $plugins_directory, $instance, $hooks, $current_hook, $plugins;
+    public static $plugins_directory, $hooks, $current_hook, $plugins;
+    
+    // Private Static: Reporting for duty
+    private static $instance;
     
     public function __construct()
     {        
