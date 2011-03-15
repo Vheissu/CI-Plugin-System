@@ -25,10 +25,7 @@ class Plugins {
         
         $this->output->enable_profiler(TRUE);
         
-        // Load the directory helper so we can parse for plugins in the plugin directory
         $this->load->helper('directory');
-        
-        // Load the file helper to read plugin files
         $this->load->helper('file');
         
         // Set the plugins directory if not already set
@@ -84,7 +81,7 @@ class Plugins {
         
         // Clean out old plugins that don't exist any more
         $this->clean_plugins_table(); 
-        
+
         // Get plugin header information
         $this->get_plugin_headers();     
     }
