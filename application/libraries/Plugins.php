@@ -1,10 +1,11 @@
 <?php
 
 /**
-* @name Hooks plugin system for Codeigniter
-* @author Dwayne Charrington - http://ilikekillnerds.com
+* @name CI System
+* @author Dwayne Charrington
+* @link http://ilikekillnerds.com
 * @coypright Dwayne Charrington 2011
-* @licence http://ilikekillnerds.com
+* @licence http://ilikekillnerds.com/dwayne-licence
 */
 
 class Plugins {
@@ -22,8 +23,6 @@ class Plugins {
 
         // Store the Codeigniter instance in our CI variable
         $this->CI = get_instance();
-        
-        $this->output->enable_profiler(TRUE);
         
         $this->load->helper('directory');
         $this->load->helper('file');
@@ -121,14 +120,14 @@ class Plugins {
     }
     
     /**
-    * Includes plugin files if plugins are set to active in the database
+    * Includes activated plugins, registers newly found plugins in the database if new ones are found
     * 
     */
     private function include_plugins()
     {
         $this->load->database();
         
-        // Foreach plugin found earlier, validate
+        // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
         {  
             $query = $this->db->where("plugin_system_name", $name)->get("plugins");
@@ -159,6 +158,7 @@ class Plugins {
                 // The plugin is set as activated
                 if ($row->plugin_status == 1)
                 {
+                    // If the file was included
                     if (@include_once self::$plugins_directory.$name."/".$name.".php")
                     {
                         self::$plugins[$name]['is_included'] = "true";
@@ -309,6 +309,7 @@ class Plugins {
     * Shameless Wordpress rip off. Gets plugin information from header of
     * plugin file.
     * 
+    * 
     */
     private function get_plugin_headers()
     {
@@ -319,74 +320,70 @@ class Plugins {
         {        
             // Load the plugin we want
             $plugin_data = read_file(self::$plugins_directory.$plugin."/".$plugin.".php");
+                   
+            preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
+            preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
+            preg_match ( '|Version:(.*)|i', $plugin_data, $version );
+            preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
+            preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
+            preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
             
-            if ($plugin_data)
-            {       
-                preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
-                preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
-                preg_match ( '|Version:(.*)|i', $plugin_data, $version );
-                preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
-                preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
-                preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
-                
-                if (isset($name[1]))
+            if (isset($name[1]))
+            {
+                $arr['plugin_name'] = trim($name[1]);
+            }
+            
+            if (isset($uri[1]))
+            {
+                $arr['plugin_uri'] = trim($uri[1]);
+            }
+            
+            if (isset($version[1]))
+            {
+                $arr['plugin_version'] = trim($version[1]);
+            }
+            
+            if (isset($description[1]))
+            {
+                $arr['plugin_description'] = trim($description[1]);
+            }
+            
+            if (isset($author_name[1]))
+            {
+                $arr['plugin_author'] = trim($author_name[1]);
+            }
+            
+            if (isset($author_uri[1]))
+            {
+                $arr['plugin_author_uri'] = trim($author_uri[1]);
+            }
+            
+            // For every plugin header item
+            foreach ($arr AS $k => $v)
+            {
+                // If the key doesn't exist or the value is not the same, update the array
+                if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
                 {
-                    $arr['plugin_name'] = trim($name[1]);
+                    self::$plugins[$plugin]['plugin_info'][$k] = trim($v);
                 }
-                
-                if (isset($uri[1]))
+                else
                 {
-                    $arr['plugin_uri'] = trim($uri[1]);
+                    return true;
                 }
-                
-                if (isset($version[1]))
+            }
+            
+            // Get the current plugin from the database
+            $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+            
+            // If plugin value is different and we're not updating the plugin name
+            if ( self::$plugins[$plugin]['plugin_info'][$k] != $query->$k )
+            {
+                // Ignore plugin name
+                if (!stripos($k, "plugin_name"))
                 {
-                    $arr['plugin_version'] = trim($version[1]);
+                    $data[$k] = trim($v);
+                    $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
                 }
-                
-                if (isset($description[1]))
-                {
-                    $arr['plugin_description'] = trim($description[1]);
-                }
-                
-                if (isset($author_name[1]))
-                {
-                    $arr['plugin_author'] = trim($author_name[1]);
-                }
-                
-                if (isset($author_uri[1]))
-                {
-                    $arr['plugin_author_uri'] = trim($author_uri[1]);
-                }
-                
-                // For every plugin header item
-                foreach ($arr AS $k => $v)
-                {
-                    // If the key doesn't exist or the value is not the same, update the array
-                    if ( !isset(self::$plugins[$plugin][$k]) OR self::$plugins[$plugin]['plugin_info'][$k] != $v )
-                    {
-                        self::$plugins[$plugin]['plugin_info'][$k] = trim($v);
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-                
-                // Get the current plugin from the database
-                $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
-                
-                // If plugin value is different and we're not updating the plugin name
-                if ( self::$plugins[$plugin]['plugin_info'][$k] != $query->$k )
-                {
-                    // Ignore plugin name
-                    if (!stripos($k, "plugin_name"))
-                    {
-                        $data[$k] = trim($v);
-                        $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
-                    }
-                }
-                
             }
         } 
     }
@@ -433,7 +430,7 @@ class Plugins {
     * @param mixed $arguments
     * @return mixed
     */
-    public static function run_action($name, $arguments = "")
+    public static function do_action($name, $arguments = "")
     {
         // Oh, no you didn't. Are you trying to run an action hook that doesn't exist?
         if ( !isset(self::$hooks[$name]) )
@@ -529,7 +526,9 @@ class Plugins {
         
         if (self::$plugins)
         {
+            echo "<pre>";
             print_r(self::$plugins);
+            echo "</pre>";
         }
         else
         {
@@ -543,7 +542,9 @@ class Plugins {
         
         if (self::$hooks)
         {
-            print_r(self::$hooks);   
+            echo "<pre>";
+            print_r(self::$hooks);
+            echo "</pre>";   
         }        
         else
         {
@@ -562,51 +563,104 @@ class Plugins {
     }  
 }
 
+/**
+* Add a new action hook
+* 
+* @param mixed $name
+* @param mixed $function
+* @param mixed $priority
+*/
 function add_action($name, $function, $priority=10)
 {
     return Plugins::add_action($name, $function, $priority);
 }
 
-function run_action($name, $arguments = "")
+/**
+* Run an action
+* 
+* @param mixed $name
+* @param mixed $arguments
+* @return mixed
+*/
+function do_action($name, $arguments = "")
 {
-    return Plugins::run_action($name, $arguments);
+    return Plugins::do_action($name, $arguments);
 }
 
+/**
+* Remove an action
+* 
+* @param mixed $name
+* @param mixed $function
+* @param mixed $priority
+*/
 function remove_action($name, $function, $priority=10)
 {
     return Plugins::remove_action($name, $function, $priority);
 }
 
+/**
+* Check if an action actually exists
+* 
+* @param mixed $name
+*/
 function action_exists($name)
 {
     return Plugins::action_exists($name);
 }
 
+/**
+* Set the location of where our plugins are located
+* 
+* @param mixed $directory
+*/
 function set_plugin_dir($directory)
 {
     Plugins::set_plugin_dir($directory);
 }
 
+/**
+* Activate a specific plugin
+* 
+* @param mixed $name
+*/
 function activate_plugin($name)
 {
     return Plugins::instance()->activate_plugin($name);
 }
 
+/**
+* Deactivate a specific plugin
+* 
+* @param mixed $name
+*/
 function deactivate_plugin($name)
 {
     return Plugins::instance()->deactivate_plugin($name);
 }
 
+/**
+* Return the number of plugins found
+* 
+*/
 function count_found_plugins()
 {
     return Plugins::instance()->count_found_plugins();
 }
 
+/**
+* Return number of plugins activated
+* 
+*/
 function count_activated_plugins()
 {
     return Plugins::instance()->count_activated_plugins();
 }
 
+/**
+* Debug function will return all plugins registered and hooks
+* 
+*/
 function debug_plugins()
 {
     Plugins::debug_plugins();
