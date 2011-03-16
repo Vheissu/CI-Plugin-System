@@ -14,7 +14,7 @@ class Plugins {
     private $CI;
     
     // So. Much. Static.
-    public static $plugins_directory, $hooks, $current_hook, $plugins;
+    public static $plugins_directory, $hooks, $current_hook, $plugins, $run_hooks = array();
     
     // Private Static: Reporting for duty
     private static $instance;
@@ -27,6 +27,7 @@ class Plugins {
         // Store the Codeigniter instance in our CI variable
         $this->CI = get_instance();
         
+        // Load useful Codeigniter helpers
         $this->load->helper('directory');
         $this->load->helper('file');
         
@@ -59,20 +60,15 @@ class Plugins {
     }
     
     /**
-    * Called by the constructor on load to load plugins, clean old plugin data, etc.
+    * Taks performed when this class is instantiated
     * 
     */
     private function init_tasks()
     {
-        /**
-        * Load all plugins from the plugin directory and add them to the plugins array. 
-        * Caching will be integrated into this process later on to save resources.
-        * 
-        * @var Plugins
-        */
+        // Scan plugins directory for valid plugins and add them.
         $this->load_plugins();
         
-        // Register all found plugins if they are activated, etc.
+        // Check if plugins activated / deactivated
         $this->include_plugins();
         
         // Clean out old plugins that don't exist any more
@@ -83,8 +79,7 @@ class Plugins {
     }
     
     /**
-    * Takes care of loading our plugins and making them usable, etc.
-    * One lone private function in a sea of static functions.
+    * Scans the plugins directory for valid plugins
     * 
     */
     private function load_plugins()
@@ -103,7 +98,6 @@ class Plugins {
                 {
                     // Register the plugin to this class as first unactivated
                     self::$plugins[$name] = array(
-                        "function"    => $name,
                         "is_included" => "false",
                         "activated"   => "false"
                     ); 
@@ -111,7 +105,7 @@ class Plugins {
             }
             else
             {
-                return TRUE;    
+                return true;    
             }
         }
     }
@@ -198,7 +192,7 @@ class Plugins {
         // If plugin doesn't exist, just pretend nothing happened and return true
         if ( !isset(self::$plugins[$name]) )
         {
-            return TRUE;
+            return true;
         }
         else
         {
@@ -217,7 +211,7 @@ class Plugins {
     {
         if ( !isset(self::$plugins[$name]) )
         {
-            return TRUE;
+            return true;
         }
         else
         {
@@ -299,7 +293,7 @@ class Plugins {
             }
         }
         
-        return TRUE;
+        return true;
     }
     
     /**
@@ -456,6 +450,8 @@ class Plugins {
                     }
                 }
             }
+            // Store our run hooks in the hooks history array
+            self::$run_hooks[$name][$priority];
         }
         
         // No hook is running any more
@@ -476,7 +472,7 @@ class Plugins {
         // If the action hook doesn't, just return true
         if ( !isset(self::$hooks[$name][$priority][$function]) )
         {
-            return TRUE;
+            return true;
         }
         
         // Remove the action hook from our hooks array
@@ -492,6 +488,18 @@ class Plugins {
         return self::$current_hook;
     }
     
+    public static function has_run($hook, $priority = 10)
+    {
+        if ( isset(self::$hooks[$hook][$priority]) )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
     /**
     * Does a particular action hook even exist?
     * 
@@ -501,11 +509,11 @@ class Plugins {
     {
         if ( isset(self::$hooks[$name]) )
         {
-            return TRUE;
+            return true;
         }
         else
         {
-            return FALSE;
+            return false;
         }
     }
     
