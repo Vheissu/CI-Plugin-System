@@ -397,7 +397,7 @@ class Plugins {
         /**
         * Allows us to iterate through multiple action hooks.
         */
-        if (is_array($name))
+        if ( is_array($name) )
         {
             foreach ($name AS $name)
             {
@@ -437,7 +437,7 @@ class Plugins {
         
         foreach(self::$hooks[$name] AS $priority => $names)
         {
-            if (is_array($names))
+            if ( is_array($names) )
             {
                 foreach($names AS $name)
                 {
@@ -448,10 +448,11 @@ class Plugins {
                     {
                         $arguments = $returnargs;
                     }
+                    
+                    // Store our run hooks in the hooks history array
+                    self::$run_hooks[$name][$priority];
                 }
             }
-            // Store our run hooks in the hooks history array
-            self::$run_hooks[$name][$priority];
         }
         
         // No hook is running any more
@@ -488,6 +489,12 @@ class Plugins {
         return self::$current_hook;
     }
     
+    /**
+    * Check if a particular hook has been run
+    * 
+    * @param mixed $hook
+    * @param mixed $priority
+    */
     public static function has_run($hook, $priority = 10)
     {
         if ( isset(self::$hooks[$hook][$priority]) )
