@@ -31,7 +31,7 @@ class Plugins {
         $this->load->helper('file');
         
         // Set the plugins directory if not already set
-        if ( empty(self::$plugins_directory) )
+        if ( is_null(self::$plugins_directory) )
         {
             self::$plugins_directory = FCPATH . "plugins/";   
         }
@@ -41,13 +41,7 @@ class Plugins {
     }
     
     /**
-    * This function lets us access Codeigniter instance objects like;
-    * helpers, libraries and core functions without having to prefix
-    * our faux Codeigniter instance variable 'CI' we can load Codeigniter
-    * libraries and other goodness like we would normally within controllers
-    * and other things.
-    * 
-    * @param mixed $bleh
+    * Shortcut to Codeigniter instance
     */
     public function __get($bleh)
     {
