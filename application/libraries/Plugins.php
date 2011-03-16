@@ -22,7 +22,7 @@ class Plugins {
     public function __construct()
     {        
         // Store instance of this class
-        self::$instance =& $this;
+        self::$instance = $this;
 
         // Store the Codeigniter instance in our CI variable
         $this->CI = get_instance();
