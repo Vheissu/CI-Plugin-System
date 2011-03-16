@@ -21,13 +21,16 @@ To see how the system works what better than an example application using a Mark
 Documentation is coming shortly, it's in the process as we speak. Tell your grandma to shut up and stop running her mouth. Be warned however, it won't come in the form of Scrabble, so your grandma might find it hard to understand.
 
 2. **I included it and I am getting lots of errors.**  
-You did something wrong. The current code works as I've tested it drunk and sober and it worked! You're probably making the number one Codeeigniter newbie mistake using Codeigniter 1.7.2 which is super old and probably means you should quit programming and become a full time burger-flipperologist at McDonald's because you're not cut out for this kiddo (as they say in the business).
+You did something wrong or your server sucks or I am just in denial that there are any issues with this library. The biggest mistake is making sure you have PHP 5 installed, not PHP 4.
 
 3. **But Wordpress lets me do x, why can't this library do that?**  
-This is not Wordpress. If you have a request make it. If something is missing you think a hook based plugin library should have, tell me. Speaking of which, have you seen the Wordpress code base? Wow, what a mess.
+This is not Wordpress, if you have a request, then contact me about it. If something is missing you think a hook based plugin library should have, tell me. Speaking of which, have you seen the Wordpress code base? Wow, what a mess that is. It's like going to the toilet at a football game, shit and rubbish absolutely everywhere.
 
 4. **Where can I get some unicorn blood? (for testing purposes of course)**  
 This is not a programming question, GTFO. Psst! send me an email, I can hook you up.
 
 5. **I still don't get it. How do I use this damn library? AAAAAAAAAHHH**  
-THERE IS NO DOCUMENTATION. IF YOU DO NOT UNDERSTAND AND SOMETHING DOESN'T WORK AND IT IS NOT A BUG, WAIT FOR DOCUMENTATION.
+THERE IS NO DOCUMENTATION. IF MY INSTRUCTIONS ARE NOT CLEAR ENOUGH, THEN QUIT PROGRAMMING OR I SHOULD QUIT IF I DIDN'T EXPLAIN SOMETHING PROPERLY. WHY AM I SHOUTING?
+
+6. **My application is running really slowly, is this your fault?**  
+This is why we can't have nice things. This library will most likely not slow down your application. It works the same as Wordpress, only there is no caching at the moment of hook calls and plugin file includes (yet). So the answer is: no, it's your own fault.
