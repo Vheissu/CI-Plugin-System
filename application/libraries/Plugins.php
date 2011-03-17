@@ -14,7 +14,7 @@ class Plugins {
     private $CI;
     
     // So. Much. Static.
-    public static $plugins_directory, $hooks, $current_hook, $plugins, $run_hooks = array();
+    public static $plugins_directory, $hooks, $current_hook, $plugins, $run_hooks;
     
     // Private Static: Reporting for duty
     private static $instance;
@@ -165,24 +165,6 @@ class Plugins {
     }
     
     /**
-    * Fetch activated plugins from the database and change their status in the plugins array
-    * 
-    */
-    private function fetch_activated_plugins()
-    {
-        $query = $this->db->where("plugin_status", 1)->get('plugins')->result_array();
-        
-        foreach ($query AS $plugin)
-        {
-            if ( isset(self::$plugins[$plugin['plugin_system_name']]) )
-            {
-                self::$plugins[$plugin['plugin_system_name']]['activated'];
-            }
-        }
-        
-    }
-    
-    /**
     * Activates a plugin for use as long as it's valid
     * 
     * @param mixed $plugin
@@ -196,10 +178,19 @@ class Plugins {
         }
         else
         {
-            $data = array("plugin_status" => 1);
+            // Set plugin to be activated in the database
+            $data['plugin_status'] = 1;
             $this->db->where('plugin_system_name', $name)->update('plugins', $data);
+            
+            // Update our plugins array to let it know the plugin is activated
+            self::$plugins[$name]['activated'] = "true";
+            
+            // Perform our check of whether or not there is new plugins to include
+            $this->include_plugins();
+            
+            // Trigger an activate event for our plugin
+            $this->trigger_activate_plugin($name);
         }
-        $this->trigger_activate_plugin($name);
     }
         
     /**
@@ -215,10 +206,19 @@ class Plugins {
         }
         else
         {
-            $data = array("plugin_status" => 0);
+            // Set the plugin in the database to be deactivated
+            $data['plugin_status'] = 0;
             $this->db->where('plugin_system_name', $name)->update('plugins', $data);
+            
+            // Update our plugins array to let it know the plugin is innactive
+            self::$plugins[$name]['activated'] = "false";
+            
+            // Trigger deactivate event to happen in the plugin
+            $this->trigger_deactivate_plugin($name);
+            
+            // Trigger a refresh of what plugins should be included and what shouldn't
+            $this->load_plugins();
         }
-        $this->trigger_deactivate_plugin($name);
     }
     
     /**
