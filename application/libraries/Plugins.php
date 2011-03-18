@@ -30,6 +30,7 @@ class Plugins {
         // Load useful Codeigniter helpers
         $this->load->helper('directory');
         $this->load->helper('file');
+        $this->load->driver('cache', array('adapter' => 'file'));
         
         // Set the plugins directory if not already set
         if ( is_null(self::$plugins_directory) )
@@ -71,8 +72,16 @@ class Plugins {
     */
     private function load_plugins()
     {
-        // Only go one deep as the plugin file is the same name as the folder
-        $plugins = directory_map(self::$plugins_directory, 1);
+        $plugins = $this->cache->get("plugins");
+        
+        if (!$plugins)
+        {
+            // Only go one deep as the plugin file is the same name as the folder
+            $plugins = directory_map(self::$plugins_directory, 1);
+            
+            // Cache for 5 minutes
+            $this->cache->save('plugins', $plugins, 300);   
+        }
         
         // Iterate through every plugin found
         foreach ($plugins AS $key => $name)
