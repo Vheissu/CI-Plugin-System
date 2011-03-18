@@ -37,8 +37,14 @@ class Plugins {
             self::$plugins_directory = FCPATH . "plugins/";   
         }
         
-        // Fetch plugins, load them and stuff
-        $this->init_tasks();
+        // Find all plugins
+        $this->load_plugins();
+        
+        // Work our what plugins we have that are activated
+        $this->get_activated_plugins();
+        
+        // Include activated plugins
+        $this->include_plugins();
     }
     
     /**
@@ -57,25 +63,6 @@ class Plugins {
     public static function set_plugin_dir($directory)
     {
         self::$plugins_directory = trim($directory);
-    }
-    
-    /**
-    * Taks performed when this class is instantiated
-    * 
-    */
-    private function init_tasks()
-    {
-        // Scan plugins directory for valid plugins and add them.
-        $this->load_plugins();
-        
-        // Check if plugins activated / deactivated
-        $this->include_plugins();
-        
-        // Clean out old plugins that don't exist any more
-        $this->clean_plugins_table(); 
-
-        // Get plugin header information
-        $this->get_plugin_headers();     
     }
     
     /**
@@ -108,6 +95,30 @@ class Plugins {
                 return true;    
             }
         }
+    }
+    
+    /**
+    * Get and store all active plugins from the database
+    * 
+    */
+    private function get_activated_plugins()
+    {
+        $plugins = $this->db->where('plugin_status', 1)->get('plugins');
+        
+        // If we have activated plugins
+        if ( $plugins->num_rows() > 0 )
+        {
+            // For every plugin, store it
+            foreach ($plugins->result_array() AS $plugin)
+            {
+                self::$plugins[$plugin['plugin_system_name']]['activated'] = "true";
+            }
+        }
+        else
+        {
+            return true;
+        }
+        $plugins->free_result();
     }
     
     /**
