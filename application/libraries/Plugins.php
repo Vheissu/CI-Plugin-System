@@ -10,22 +10,17 @@
 
 class Plugins {
     
-    // Codeigniter instance
-    private $CI;
-    
-    // So. Much. Static.
-    public static $plugins_directory, $hooks, $current_hook, $plugins, $run_hooks;
-    
-    // Private Static: Reporting for duty
-    private static $instance;
+    public static $instance;          // The instance of this class
+    public static $plugins_directory; // Where our plugins are located
+    public static $hooks;             // Our array of registered hooks
+    public static $current_hook;      // The currently running hook (if any)
+    public static $plugins;           // An array of all plugins
+    public static $run_hooks;         // An array of previously executed hooks
     
     public function __construct()
-    {        
-        // Store instance of this class
+    {       
+        // Store our instance
         self::$instance = $this;
-
-        // Store the Codeigniter instance in our CI variable
-        $this->CI = get_instance();
         
         // Load useful Codeigniter helpers
         $this->load->helper('directory');
@@ -53,7 +48,8 @@ class Plugins {
     */
     public function __get($bleh)
     {
-        return $this->CI->$bleh;
+        $ci = get_instance();
+        return $ci->$bleh;
     }
     
     /**
