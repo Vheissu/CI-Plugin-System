@@ -147,10 +147,19 @@ class Plugins {
     {
         $this->load->database();
         
+        $query = $this->cache->get('plugin_names');
+        
         // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
         {
-            $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
+            if (!$query)
+            {
+                $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
+                
+                // Cache for 5 minutes
+                $this->cache->save('plugin_names', $query, 300);   
+            }
+            
             $row   = $query->row();
             
             // Plugin doesn't exist, add it.
