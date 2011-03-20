@@ -73,16 +73,8 @@ class Plugins {
     */
     private function load_plugins()
     {
-        $plugins = $this->cache->get('plugins');
-        
-        if (!$plugins)
-        {
-            // Only go one deep as the plugin file is the same name as the folder
-            $plugins = directory_map(self::$plugins_directory, 1);
-            
-            // Cache for 5 minutes
-            $this->cache->save('plugins', $plugins, 300);   
-        }
+        // Only go one deep as the plugin file is the same name as the folder
+        $plugins = directory_map(self::$plugins_directory, 1);
         
         // Iterate through every plugin found
         foreach ($plugins AS $key => $name)
@@ -113,15 +105,7 @@ class Plugins {
     */
     private function get_activated_plugins()
     {
-        $plugins = $this->cache->get('activated_plugins');
-        
-        if (!$plugins)
-        {
-            $plugins = $this->db->where('plugin_status', 1)->get(self::$table);
-            
-            // Cache for 5 minutes
-            $this->cache->save('activated_plugins', $plugins, 300);   
-        }
+        $plugins = $this->db->where('plugin_status', 1)->get(self::$table);
         
         // If we have activated plugins
         if ( $plugins->num_rows() > 0 )
@@ -147,19 +131,10 @@ class Plugins {
     {
         $this->load->database();
         
-        $query = $this->cache->get('plugin_names');
-        
         // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
         {
-            if (!$query)
-            {
-                $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
-                
-                // Cache for 5 minutes
-                $this->cache->save('plugin_names', $query, 300);   
-            }
-            
+            $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
             $row   = $query->row();
             
             // Plugin doesn't exist, add it.
