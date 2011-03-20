@@ -10,19 +10,24 @@
 
 class Plugins {
     
-    public static $instance;          // The instance of this class
-    public static $plugins_directory; // Where our plugins are located
-    public static $hooks;             // Our array of registered hooks
-    public static $current_hook;      // The currently running hook (if any)
-    public static $plugins;           // An array of all plugins
-    public static $run_hooks;         // An array of previously executed hooks
+    private static $table = "plugins"; // the table name the plugins data is stored    
+
+    public  static $instance;          // The instance of this class
+    public  static $plugins_directory; // Where our plugins are located
+    public  static $hooks;             // Our array of registered hooks
+    public  static $current_hook;      // The currently running hook (if any)
+    public  static $plugins;           // An array of all plugins
+    public  static $run_hooks;         // An array of previously executed hooks
     
     public function __construct()
     {       
-        // Store our instance
-        self::$instance = $this;
+        self::$instance = $this; // Store our instance
         
-        // Load useful Codeigniter helpers
+        /**
+        * Load Codeigniter helper functions and driver class
+        * 
+        * @var Plugins
+        */
         $this->load->helper('directory');
         $this->load->helper('file');
         $this->load->driver('cache', array('adapter' => 'file'));
@@ -68,7 +73,7 @@ class Plugins {
     */
     private function load_plugins()
     {
-        $plugins = $this->cache->get("plugins");
+        $plugins = $this->cache->get('plugins');
         
         if (!$plugins)
         {
@@ -108,7 +113,15 @@ class Plugins {
     */
     private function get_activated_plugins()
     {
-        $plugins = $this->db->where('plugin_status', 1)->get('plugins');
+        $plugins = $this->cache->get('activated_plugins');
+        
+        if (!$plugins)
+        {
+            $plugins = $this->db->where('plugin_status', 1)->get(self::$table);
+            
+            // Cache for 5 minutes
+            $this->cache->save('activated_plugins', $plugins, 300);   
+        }
         
         // If we have activated plugins
         if ( $plugins->num_rows() > 0 )
@@ -136,8 +149,8 @@ class Plugins {
         
         // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
-        {  
-            $query = $this->db->where("plugin_system_name", $name)->get("plugins");
+        {
+            $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
             $row   = $query->row();
             
             // Plugin doesn't exist, add it.
