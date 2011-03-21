@@ -10,7 +10,9 @@
 
 class Plugins {
     
-    private static $table = "plugins"; // the table name the plugins data is stored    
+    private static $table = "plugins"; // the table name the plugins data is stored
+    
+    private $_ci; // The Codeigniter instance    
 
     public static $instance;           // The instance of this class
     public static $plugins_directory;  // Where our plugins are located
@@ -19,24 +21,17 @@ class Plugins {
     public static $current_hook;       // The currently running hook (if any)
     public static $run_hooks;          // An array of previously executed hooks
     
-    /**
-    * Shortcut to Codeigniter instance
-    */
-    public function __get($bleh)
-    {
-        $ci = get_instance();
-        return $ci->$bleh;
-    }
-    
     // ------------------------------------------------------------------------
     
     public function __construct()
     {       
         self::$instance = $this; // Store our instance
         
-        $this->load->driver('cache', array('adapter' => 'file'));
-        $this->load->helper('directory');
-        $this->load->helper('file');
+        $this->_ci = get_instance();
+        
+        $this->_ci->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+        $this->_ci->load->helper('directory');
+        $this->_ci->load->helper('file');
         
         // Set the plugins directory if not already set
         if ( is_null(self::$plugins_directory) )
@@ -46,6 +41,9 @@ class Plugins {
         
         // Find all plugins
         $this->load_plugins();
+        
+        // Get plugin headers
+        $this->get_plugin_headers();
         
         // Work our what plugins we have that are activated
         $this->get_activated_plugins();
@@ -72,10 +70,10 @@ class Plugins {
     private function load_plugins()
     {
         // If plugins are not cached
-        if ( !$plugins = $this->cache->get('load_plugins'))
+        if ( !$plugins = $this->_ci->cache->get('load_plugins'))
         {
-            $plugins = directory_map(self::$plugins_directory, 1); // Find plugins
-            $this->cache->file->save($plugins, 'load_plugins', 60);     // Cache for one hour
+            $plugins = directory_map(self::$plugins_directory, 1);  // Find plugins
+            $this->_ci->cache->save($plugins, 'load_plugins', 60); // Cache for one hour
         }
         
         // Iterate through every plugin found
@@ -106,10 +104,10 @@ class Plugins {
     */
     private function get_activated_plugins()
     {
-        $this->load->database();
-        $this->db->cache_on();
+        $this->_ci->load->database();
+        $this->_ci->db->cache_on();
         
-        $plugins = $this->db->where('plugin_status', 1)->get(self::$table);
+        $plugins = $this->_ci->db->where('plugin_status', 1)->get(self::$table);
         
         // If we have activated plugins
         if ( $plugins->num_rows() > 0 )
@@ -132,12 +130,12 @@ class Plugins {
     */
     private function include_plugins()
     {   
-        $this->db->cache_on();
+        $this->_ci->db->cache_on();
         
         // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
         {
-            $query = $this->db->where("plugin_system_name", $name)->get(self::$table);
+            $query = $this->_ci->db->where("plugin_system_name", $name)->get(self::$table);
             $row   = $query->row();
             
             // Plugin doesn't exist, add it.
@@ -191,7 +189,7 @@ class Plugins {
         {
             // Set plugin to be activated in the database
             $data['plugin_status'] = 1;
-            $this->db->where('plugin_system_name', $name)->update('plugins', $data);
+            $this->_ci->db->where('plugin_system_name', $name)->update('plugins', $data);
             
             // Update our plugins array to let it know the plugin is activated
             self::$plugins[$name]['activated'] = "true";
@@ -219,7 +217,7 @@ class Plugins {
         {
             // Set the plugin in the database to be deactivated
             $data['plugin_status'] = 0;
-            $this->db->where('plugin_system_name', $name)->update('plugins', $data);
+            $this->_ci->db->where('plugin_system_name', $name)->update('plugins', $data);
             
             // Update our plugins array to let it know the plugin is innactive
             self::$plugins[$name]['activated'] = "false";
@@ -276,25 +274,25 @@ class Plugins {
     
     public function count_activated_plugins()
     {
-        $this->db->cache_on();
-        return $this->db->where('plugin_status', 1)->get('plugins')->num_rows();
+        $this->_ci->db->cache_on();
+        return $this->_ci->db->where('plugin_status', 1)->get('plugins')->num_rows();
     }
     
     /**
     * Shameless Wordpress rip off. Gets plugin information from header of
     * plugin file.
-    * 
-    * 
     */
     private function get_plugin_headers()
     {
         $arr = "";
-        
+        $this->_ci->db->cache_on();
+                
         // Iterate over all plugins
         foreach (self::$plugins AS $plugin => $value )
         {        
-            // Load the plugin we want
-            $plugin_data = read_file(self::$plugins_directory.$plugin."/".$plugin.".php");
+            $plugin = strtolower(trim($plugin)); // Lowercase and trim the plugin name
+            
+            $plugin_data = read_file(self::$plugins_directory.$plugin."/".$plugin.".php"); // Load the plugin we want
                    
             preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
             preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
@@ -348,7 +346,7 @@ class Plugins {
             }
             
             // Get the current plugin from the database
-            $query = $this->db->where('plugin_system_name', $plugin)->get('plugins')->row();
+            $query = $this->_ci->db->where('plugin_system_name', $plugin)->get('plugins')->row();
             
             // If plugin value is different and we're not updating the plugin name
             if ( self::$plugins[$plugin]['plugin_info'][$k] != $query->$k )
@@ -357,7 +355,7 @@ class Plugins {
                 if (!stripos($k, "plugin_name"))
                 {
                     $data[$k] = trim($v);
-                    $this->db->where('plugin_system_name', $plugin)->update('plugins', $data);
+                    $this->_ci->db->where('plugin_system_name', $plugin)->update('plugins', $data);
                 }
             }
         } 
