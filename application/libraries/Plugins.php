@@ -12,25 +12,31 @@ class Plugins {
     
     private static $table = "plugins"; // the table name the plugins data is stored    
 
-    public  static $instance;          // The instance of this class
-    public  static $plugins_directory; // Where our plugins are located
-    public  static $hooks;             // Our array of registered hooks
-    public  static $current_hook;      // The currently running hook (if any)
-    public  static $plugins;           // An array of all plugins
-    public  static $run_hooks;         // An array of previously executed hooks
+    public static $instance;           // The instance of this class
+    public static $plugins_directory;  // Where our plugins are located
+    public static $plugins;            // An array of all plugins
+    public static $hooks;              // Our array of registered hooks
+    public static $current_hook;       // The currently running hook (if any)
+    public static $run_hooks;          // An array of previously executed hooks
+    
+    /**
+    * Shortcut to Codeigniter instance
+    */
+    public function __get($bleh)
+    {
+        $ci = get_instance();
+        return $ci->$bleh;
+    }
+    
+    // ------------------------------------------------------------------------
     
     public function __construct()
     {       
         self::$instance = $this; // Store our instance
         
-        /**
-        * Load Codeigniter helper functions and driver class
-        * 
-        * @var Plugins
-        */
+        $this->load->driver('cache', array('adapter' => 'file'));
         $this->load->helper('directory');
         $this->load->helper('file');
-        $this->load->driver('cache', array('adapter' => 'file'));
         
         // Set the plugins directory if not already set
         if ( is_null(self::$plugins_directory) )
@@ -48,14 +54,7 @@ class Plugins {
         $this->include_plugins();
     }
     
-    /**
-    * Shortcut to Codeigniter instance
-    */
-    public function __get($bleh)
-    {
-        $ci = get_instance();
-        return $ci->$bleh;
-    }
+    // ------------------------------------------------------------------------
     
     /**
     * Store the location of where our plugins are located
@@ -69,27 +68,29 @@ class Plugins {
     
     /**
     * Scans the plugins directory for valid plugins
-    * 
     */
     private function load_plugins()
     {
-        // Only go one deep as the plugin file is the same name as the folder
-        $plugins = directory_map(self::$plugins_directory, 1);
+        // If plugins are not cached
+        if ( !$plugins = $this->cache->get('load_plugins'))
+        {
+            $plugins = directory_map(self::$plugins_directory, 1); // Find plugins
+            $this->cache->file->save($plugins, 'load_plugins', 60);     // Cache for one hour
+        }
         
         // Iterate through every plugin found
         foreach ($plugins AS $key => $name)
-        {                       
+        {                 
+            $name = strtolower(trim($name)); // Trim any whitespace and lowercase
+                  
             // If the plugin hasn't already been added and isn't a file
             if ( !isset(self::$plugins[$name]) AND !stripos($name, ".") )
             {                
                 // Make sure a valid plugin file by the same name as the folder exists
                 if ( file_exists(self::$plugins_directory.$name."/".$name.".php") )
                 {
-                    // Register the plugin to this class as first unactivated
-                    self::$plugins[$name] = array(
-                        "is_included" => "false",
-                        "activated"   => "false"
-                    ); 
+                    // Register the plugin
+                    self::$plugins[$name]['activated'] = "false"; 
                 }
             }
             else
@@ -105,6 +106,9 @@ class Plugins {
     */
     private function get_activated_plugins()
     {
+        $this->load->database();
+        $this->db->cache_on();
+        
         $plugins = $this->db->where('plugin_status', 1)->get(self::$table);
         
         // If we have activated plugins
@@ -120,7 +124,6 @@ class Plugins {
         {
             return true;
         }
-        $plugins->free_result();
     }
     
     /**
@@ -128,8 +131,8 @@ class Plugins {
     * 
     */
     private function include_plugins()
-    {
-        $this->load->database();
+    {   
+        $this->db->cache_on();
         
         // Validate and include our found plugins
         foreach (self::$plugins AS $name => $data)
@@ -165,12 +168,7 @@ class Plugins {
                     // If the file was included
                     if (@include_once self::$plugins_directory.$name."/".$name.".php")
                     {
-                        self::$plugins[$name]['is_included'] = "true";
                         self::$plugins[$name]['activated']   = "true";
-                    }
-                    else
-                    {
-                        self::$plugins[$name]['is_included'] = "false";
                     }
                 }
             } 
@@ -278,35 +276,8 @@ class Plugins {
     
     public function count_activated_plugins()
     {
+        $this->db->cache_on();
         return $this->db->where('plugin_status', 1)->get('plugins')->num_rows();
-    }
-    
-    /**
-    * This little function will check if the database has plugins that don't exist
-    * and then it will remove them including their data because someone obviously
-    * deleted the files and doesn't care about society.
-    * 
-    */
-    private function clean_plugins_table()
-    {
-        $query = $this->db->get("plugins");
-        $rows  = $query->result_array();
-        
-        // If we have plugins in the database
-        if ($query->num_rows() >= 1)
-        {
-            // Iterate through every plugin pulled from the database and check it exists
-            foreach ($rows AS $plugin)
-            {
-                // If the plugin isn't set in our plugins array, it doesn't exist, so remove it.
-                if ( !isset(self::$plugins[$plugin['plugin_system_name']]) )
-                {
-                    $this->db->delete('plugins', array('plugin_system_name' => $plugin['plugin_system_name']));
-                }   
-            }
-        }
-        
-        return true;
     }
     
     /**
