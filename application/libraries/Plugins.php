@@ -78,13 +78,8 @@ class Plugins {
     * 
     */
     public function find_plugins()
-    {
-        // If plugins are not cached
-        if ( !$plugins = $this->_ci->cache->get('load_plugins'))
-        {
-            $plugins = directory_map($this->plugins_dir, 1);       // Find plugins
-            $this->_ci->cache->save($plugins, 'load_plugins', 5); // Cache for one hour
-        }
+    {        
+        $plugins = directory_map($this->plugins_dir, 1);       // Find plugins
         
         // Iterate through every plugin found
         foreach ($plugins AS $key => $name)
