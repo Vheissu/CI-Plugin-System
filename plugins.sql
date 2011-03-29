@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50141
 File Encoding         : 65001
 
-Date: 2011-03-30 07:52:55
+Date: 2011-03-30 08:06:36
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -29,11 +29,11 @@ CREATE TABLE `plugins` (
   `plugin_author_uri` varchar(120) DEFAULT NULL,
   `plugin_data` longtext,
   PRIMARY KEY (`plugin_id`),
-  KEY `plugin_index` (`plugin_system_name`)
+  UNIQUE KEY `plugin_index` (`plugin_system_name`) USING BTREE
 ) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 
 -- ----------------------------
 -- Records of plugins
 -- ----------------------------
 INSERT INTO plugins VALUES ('1', 'cimarkdown', 'CI Markdown', 'http://ilikekillnerds.com', '1.0', 'Parses text for Markdown', 'Dwayne Charrington', 'http://ilikekillnerds.com', null);
-INSERT INTO plugins VALUES ('2', 'cimarkdown', 'CI Markdown', 'http://ilikekillnerds.com', '1.0', 'Parses text for Markdown', 'Dwayne Charrington', 'http://ilikekillnerds.com', null);
+INSERT INTO plugins VALUES ('2', 'helloworld', 'Hello World', 'http://ilikekillnerds.com', '1.0', 'A simple hello world plugin', 'Dwayne Charrington', 'http://ilikekillnerds.com', null);

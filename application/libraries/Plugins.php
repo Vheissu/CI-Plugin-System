@@ -21,8 +21,8 @@ class Plugins {
     public $plugins_dir;
     
     // Error and Message Pools
-    public $errors;
-    public $messages;
+    public static $errors;
+    public static $messages;
     
     public function __construct()
     {
@@ -43,7 +43,9 @@ class Plugins {
         $this->get_activated_plugins(); // Get all activated plugins
         $this->get_plugin_infos();      // Gets information about all plugins and stores it
         $this->include_plugins();       // Include plugins
-                      
+        
+        self::$messages = ""; // Clear messages
+        self::$errors   = ""; // Clear errors                      
     }
     
     /**
@@ -100,7 +102,7 @@ class Plugins {
                 }
                 else
                 {
-                    $this->errors[$name][] = "Plugin file ".$name.".php does not exist.";
+                    self::$errors[$name][] = "Plugin file ".$name.".php does not exist.";
                 }
             }
         }
@@ -228,6 +230,37 @@ class Plugins {
                 }
             }
         } 
+    }
+    
+    /**
+    * Activates a plugin only if it exists in the
+    * plugins_pool. After activating, reload page
+    * to get the newly activated plugin
+    * 
+    * @param mixed $name
+    */
+    public function activate_plugin($name)
+    {
+        $name = strtolower(trim($name)); // Make sure the name is lowercase and no spaces
+        
+        // Okay the plugin exists, push it to the activated array
+        if ( isset(self::$plugins_pool[$name]) AND !isset(self::$plugins_active[$name]) )
+        {
+            $this->_ci->db->insert('plugins', array('plugin_system_name' => $name));
+            self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." successfully activated!";
+        }
+    }
+    
+    public function deactivate_plugin($name)
+    {
+        $name = strtolower(trim($name)); // Make sure the name is lowercase and no spaces
+        
+        // Okay the plugin exists, push it to the activated array
+        if ( isset(self::$plugins_active[$name]) )
+        {
+            $this->_ci->db->where('plugin_system_name', $name)->delete('plugins');
+            self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." has been deactivated!";
+        }        
     }
     
     
@@ -424,7 +457,7 @@ class Plugins {
     * neatly presented to the user.
     * 
     */
-    public function debug_class()
+    public static function debug_class()
     {
         if ( isset(self::$plugins_pool) )
         {
@@ -554,7 +587,7 @@ function deactivate_plugin($name)
 */
 function count_found_plugins()
 {
-    return Plugins::instance()->count_found_plugins();
+    return count(Plugins::$plugins_pool);
 }
 
 /**
@@ -563,7 +596,7 @@ function count_found_plugins()
 */
 function count_activated_plugins()
 {
-    return Plugins::instance()->count_activated_plugins();
+    return count(Plugins::$plugins_active);
 }
 
 /**
@@ -572,15 +605,15 @@ function count_activated_plugins()
 */
 function debug_class()
 {
-    Plugins::instance()->debug_class();
+    Plugins::debug_class();
 }
 
 function errors()
 {
-    print_r(Plugins::instance()->errors);
+    print_r(Plugins::$errors);
 }
 
 function messages()
 {
-    print_r(Plugins::instance()->messages);
+    print_r(Plugins::$messages);
 }
