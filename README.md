@@ -9,11 +9,13 @@ I'm glad you asked. If you are familiar with Wordpress action and filter hooks, 
 * Download the files from this Github, then paste the folders into your root directory. Nothing should be overwritten (hopefully).
 * Autoload the library "plugins"
 * Start implementing your action points within your application using the run_action() function.
-* In your plugins make sure to utilise the add_action() to register callbacks to your plugin functions when run_action is called.
+* In your plugins make sure to utilise the add_action() to register callbacks to your plugin functions when do_action is called.
+* To active a plugin you simply go: activate_plugin('pluginname'); (the plugin name is the name of your plugin folder, lowercased and no spaces or characters).
+* To deactivated a plugin you simply go: deactive_plugin('pluginname'); (the plugin name is the name of your plugin folder, lowercased and no spaces or characters).
 * What next? Put the kettle on and kick the fuck back.
 
 ## Example application  
-To see how the system works what better than an example application using a Markdown plugin I developed to show off the functionality of the library. It's located here: https://github.com/Vheissu/Ci-Plugin-System---Example-Plugin-and-Usage
+To see how the system works what better than an example application using a Markdown plugin I developed to show off the functionality of the library. It's located here: https://github.com/Vheissu/Ci-Plugin-System---Example-Plugin-and-Usage - there is also a Hello World application that does nothing included as well (completely free!).
 
 ## FAQ's
 
