@@ -79,7 +79,7 @@ class Plugins {
     */
     public function find_plugins()
     {        
-        $plugins = directory_map($this->plugins_dir, 1);       // Find plugins
+        $plugins = directory_map($this->plugins_dir, 1); // Find plugins
         
         // Iterate through every plugin found
         foreach ($plugins AS $key => $name)
