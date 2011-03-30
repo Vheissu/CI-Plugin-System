@@ -603,12 +603,18 @@ function debug_class()
     Plugins::debug_class();
 }
 
-function errors()
+function plugin_errors()
 {
-    print_r(Plugins::$errors);
+    foreach (Plugins::$errors AS $k => $error)
+    {
+        echo $error."\n\r";   
+    }
 }
 
-function messages()
+function plugin_messages()
 {
-    print_r(Plugins::$messages);
+    foreach (Plugins::$messages AS $k => $message)
+    {
+        echo $message."\n\r";   
+    }
 }
