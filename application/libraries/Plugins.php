@@ -605,16 +605,30 @@ function debug_class()
 
 function plugin_errors()
 {
-    foreach (Plugins::$errors AS $k => $error)
+    if ( is_array(Plugins::$errors) )
     {
-        echo $error."\n\r";   
+        foreach (Plugins::$errors AS $k => $error)
+        {
+            echo $error."\n\r";   
+        }
+    }
+    else
+    {
+        return true;
     }
 }
 
 function plugin_messages()
 {
-    foreach (Plugins::$messages AS $k => $message)
+    if ( is_array(Plugins::$messages) )
     {
-        echo $message."\n\r";   
+        foreach (Plugins::$messages AS $k => $message)
+        {
+            echo $message."\n\r";   
+        }
+    }
+    else
+    {
+        return true;
     }
 }
