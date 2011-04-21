@@ -57,7 +57,7 @@ class Plugins {
     {
         if ( !empty($directory) )
         {
-            $this->plugins_dir = trim($directory);
+            $this->plugins_dir = trim($directory)."/";
         }        
     }
     
