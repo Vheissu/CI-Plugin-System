@@ -81,23 +81,26 @@ class Plugins {
     {        
         $plugins = directory_map($this->plugins_dir, 1); // Find plugins
         
-        // Iterate through every plugin found
-        foreach ($plugins AS $key => $name)
-        {                 
-            $name = strtolower(trim($name)); // Trim any whitespace and lowercase
-                  
-            // If the plugin hasn't already been added and isn't a file
-            if ( !isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
-            {                
-                // Make sure a valid plugin file by the same name as the folder exists
-                if ( file_exists($this->plugins_dir.$name."/".$name.".php") )
-                {
-                    // Register the plugin
-                    self::$plugins_pool[$name]['plugin'] = $name; 
-                }
-                else
-                {
-                    self::$errors[$name][] = "Plugin file ".$name.".php does not exist.";
+        if ($plugins !== false)
+        {        
+            // Iterate through every plugin found
+            foreach ($plugins AS $key => $name)
+            {                 
+                $name = strtolower(trim($name)); // Trim any whitespace and lowercase
+                      
+                // If the plugin hasn't already been added and isn't a file
+                if ( !isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
+                {                
+                    // Make sure a valid plugin file by the same name as the folder exists
+                    if ( file_exists($this->plugins_dir.$name."/".$name.".php") )
+                    {
+                        // Register the plugin
+                        self::$plugins_pool[$name]['plugin'] = $name; 
+                    }
+                    else
+                    {
+                        self::$errors[$name][] = "Plugin file ".$name.".php does not exist.";
+                    }
                 }
             }
         }
@@ -167,61 +170,64 @@ class Plugins {
     */
     public function get_plugin_infos()
     {
-        // Iterate over all plugins
-        foreach (self::$plugins_pool AS $plugin => $value )
-        {        
-            $plugin = strtolower(trim($plugin)); // Lowercase and trim the plugin name
-            
-            $plugin_data = read_file($this->plugins_dir.$plugin."/".$plugin.".php"); // Load the plugin we want
-                   
-            preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
-            preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
-            preg_match ( '|Version:(.*)|i', $plugin_data, $version );
-            preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
-            preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
-            preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
-            
-            if (isset($name[1]))
-            {
-                $arr['plugin_name'] = trim($name[1]);
-            }
-            
-            if (isset($uri[1]))
-            {
-                $arr['plugin_uri'] = trim($uri[1]);
-            }
-            
-            if (isset($version[1]))
-            {
-                $arr['plugin_version'] = trim($version[1]);
-            }
-            
-            if (isset($description[1]))
-            {
-                $arr['plugin_description'] = trim($description[1]);
-            }
-            
-            if (isset($author_name[1]))
-            {
-                $arr['plugin_author'] = trim($author_name[1]);
-            }
-            
-            if (isset($author_uri[1]))
-            {
-                $arr['plugin_author_uri'] = trim($author_uri[1]);
-            }
-            
-            // For every plugin header item
-            foreach ($arr AS $k => $v)
-            {
-                // If the key doesn't exist or the value is not the same, update the array
-                if ( !isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v )
+        if (self::$plugins_pool !== false)
+        {
+            // Iterate over all plugins
+            foreach (self::$plugins_pool AS $plugin => $value )
+            {        
+                $plugin = strtolower(trim($plugin)); // Lowercase and trim the plugin name
+                
+                $plugin_data = read_file($this->plugins_dir.$plugin."/".$plugin.".php"); // Load the plugin we want
+                       
+                preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
+                preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
+                preg_match ( '|Version:(.*)|i', $plugin_data, $version );
+                preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
+                preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
+                preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
+                
+                if (isset($name[1]))
                 {
-                    self::$plugins_pool[$plugin]['plugin_info'][$k] = trim($v);
+                    $arr['plugin_name'] = trim($name[1]);
                 }
-                else
+                
+                if (isset($uri[1]))
                 {
-                    return true;
+                    $arr['plugin_uri'] = trim($uri[1]);
+                }
+                
+                if (isset($version[1]))
+                {
+                    $arr['plugin_version'] = trim($version[1]);
+                }
+                
+                if (isset($description[1]))
+                {
+                    $arr['plugin_description'] = trim($description[1]);
+                }
+                
+                if (isset($author_name[1]))
+                {
+                    $arr['plugin_author'] = trim($author_name[1]);
+                }
+                
+                if (isset($author_uri[1]))
+                {
+                    $arr['plugin_author_uri'] = trim($author_uri[1]);
+                }
+                
+                // For every plugin header item
+                foreach ($arr AS $k => $v)
+                {
+                    // If the key doesn't exist or the value is not the same, update the array
+                    if ( !isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v )
+                    {
+                        self::$plugins_pool[$plugin]['plugin_info'][$k] = trim($v);
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
         } 
