@@ -29,11 +29,6 @@ class Plugins {
         $this->_ci      = get_instance(); // Codeigniter instance
         self::$instance = $this;          // Instance of this class
         
-        // Driver library only available on CI 2.0+
-        if (CI_VERSION >= 2.0)
-        {
-        	$this->_ci->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
-        }
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
         $this->_ci->load->helper('file');
@@ -45,7 +40,7 @@ class Plugins {
         }
         else // else set to default value
         {
-        	$this->set_plugin_dir(FCPATH . "plugins/");
+        	$this->set_plugin_dir(FCPATH . "plugins");
         }
         
         // Remove index.php string on the plugins directory if any
@@ -246,6 +241,7 @@ class Plugins {
     }
     
     /**
+    * Activate Plugin
     * Activates a plugin only if it exists in the
     * plugins_pool. After activating, reload page
     * to get the newly activated plugin
@@ -264,11 +260,17 @@ class Plugins {
         }
     }
     
+    /**
+    * Deactivate Plugin
+    * Deactivates a plugin
+    * 
+    * @param string $name
+    */
     public function deactivate_plugin($name)
     {
         $name = strtolower(trim($name)); // Make sure the name is lowercase and no spaces
         
-        // Okay the plugin exists, push it to the activated array
+        // Okay the plugin exists
         if ( isset(self::$plugins_active[$name]) )
         {
             $this->_ci->db->where('plugin_system_name', $name)->delete('plugins');
@@ -278,6 +280,7 @@ class Plugins {
     
     
     /**
+    * Plugin Info
     * Get information about a specific plugin
     * 
     * @param mixed $name
@@ -294,6 +297,26 @@ class Plugins {
         }
     }
     
+    
+    /**
+    * Print Plugins
+    * This plugin returns the array of all plugins found
+    * 
+    */
+    public function print_plugins()
+    {
+        return self::$plugins_pool;
+    }
+    
+    
+    /**
+    * Add Action
+    * Add a new hook trigger action
+    * 
+    * @param mixed $name
+    * @param mixed $function
+    * @param mixed $priority
+    */
     public function add_action($name, $function, $priority=10)
     {
         // If we have already registered this action return true
@@ -322,7 +345,9 @@ class Plugins {
         return true;
     }
     
+    
     /**
+    * Do Action
     * Trigger an action for a particular action hook
     * 
     * @param mixed $name
@@ -367,9 +392,11 @@ class Plugins {
         self::$current_action = '';
         
         return $arguments;
-    }  
+    }
+      
     
     /**
+    * Remove Action
     * Remove an action hook. No more needs to be said.
     * 
     * @param mixed $name
@@ -388,7 +415,9 @@ class Plugins {
         unset(self::$actions[$name][$priority][$function]);
     }
     
+    
     /**
+    * Current Action
     * Get the currently running action hook
     * 
     */
@@ -397,7 +426,9 @@ class Plugins {
         return self::$current_action;
     }
     
+    
     /**
+    * Has Run
     * Check if a particular hook has been run
     * 
     * @param mixed $hook
@@ -414,6 +445,7 @@ class Plugins {
             return false;
         }
     }
+    
     
     /**
     * Does a particular action hook even exist?
@@ -432,7 +464,8 @@ class Plugins {
         }
     }
     
-/**
+    
+    /**
     * Triggers the functionname_activate function when a plugin is activated
     * 
     * @param mixed $name
@@ -442,6 +475,7 @@ class Plugins {
         // Call plugin activate function
         @call_user_func($name."_activate");
     }
+    
     
     /**
     * Triggers the functionname_deactivate function when a plugin is deactivated
@@ -454,6 +488,7 @@ class Plugins {
         @call_user_func($name."_deactivate");
     }
     
+    
     /**
     * Triggers the functionname_install function when a plugin is first installed
     * 
@@ -464,6 +499,7 @@ class Plugins {
         // Call our plugin deactivate function
         @call_user_func($name."_install");
     }
+    
     
     /**
     * Will print our information about all plugins and actions
@@ -592,6 +628,16 @@ function activate_plugin($name)
 function deactivate_plugin($name)
 {
     return Plugins::instance()->deactivate_plugin($name);
+}
+
+/**
+* Print Plugins
+* Returns the list of plugins
+* 
+*/
+function print_plugins()
+{
+    return Plugins::instance()->print_plugins();
 }
 
 /**
