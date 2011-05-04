@@ -24,21 +24,33 @@ class Plugins {
     public static $errors;
     public static $messages;
     
-    public function __construct()
+    public function __construct($params = array())
     {
         $this->_ci      = get_instance(); // Codeigniter instance
         self::$instance = $this;          // Instance of this class
         
-        $this->_ci->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+        // Driver library only available on CI 2.0+
+        if (CI_VERSION >= 2.0)
+        {
+        	$this->_ci->load->driver('cache', array('adapter' => 'apc', 'backup' => 'file'));
+        }
+        $this->_ci->load->database();
         $this->_ci->load->helper('directory');
         $this->_ci->load->helper('file');
         
-        // Set the plugins directory if not already set
-        if ( is_null($this->plugins_dir) )
+        // Set the plugins directory if passed via paramater
+        if (array_key_exists('plugins_dir', $params))
         {
-            $this->plugins_dir = FCPATH . "plugins/";   
-        }  
+        	$this->set_plugin_dir($params['plugins_dir']);
+        }
+        else // else set to default value
+        {
+        	$this->set_plugin_dir(FCPATH . "plugins/");
+        }
         
+        // Remove index.php string on the plugins directory if any
+        $this->plugins_dir = str_replace("index.php", "", $this->plugins_dir);      
+                
         $this->find_plugins();          // Find all plugins
         $this->get_activated_plugins(); // Get all activated plugins
         $this->get_plugin_infos();      // Gets information about all plugins and stores it
@@ -53,7 +65,7 @@ class Plugins {
     * 
     * @param mixed $directory
     */
-    public function set_plugin_dir($directory)
+    private function set_plugin_dir($directory)
     {
         if ( !empty($directory) )
         {
