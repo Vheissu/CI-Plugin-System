@@ -1,4 +1,11 @@
 <?php
+/**
+* @name CI Plugin System
+* @author Dwayne Charrington (and other contributors)
+* @copyright 2011, Dwayne Charrington.
+* @license (DWYWWTJAM) Do what you want with this, just attribute me.
+* @link http://ilikekillnerds.com
+*/
   
 class Plugins {
     
