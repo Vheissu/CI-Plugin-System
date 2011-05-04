@@ -24,6 +24,12 @@ class Plugins {
     public static $errors;
     public static $messages;
     
+    /**
+    * Constructor
+    * 
+    * @param mixed $params
+    * @return Plugins
+    */
     public function __construct($params = array())
     {
         $this->_ci      = get_instance(); // Codeigniter instance
@@ -56,6 +62,7 @@ class Plugins {
     }
     
     /**
+    * Set Plugin Dir
     * Set the location of where all of the plugins are located
     * 
     * @param mixed $directory
@@ -69,6 +76,7 @@ class Plugins {
     }
     
     /**
+    * Instance
     * The instance of this plugin class
     * 
     */
@@ -79,9 +87,10 @@ class Plugins {
     
     
     /**
+    * Find Plugins
     * Find plugins in the plugins directory. 
-    * This just gets all plugins oh, and then it stores 
-    * the plugin header information.
+    * This just gets all plugins oh, and then 
+    * it stores the plugin header information.
     * 
     */
     public function find_plugins()
@@ -115,6 +124,7 @@ class Plugins {
     
     
     /**
+    * Get Activated Plugins
     * Get all activated plugins from the database
     * 
     */
@@ -140,6 +150,7 @@ class Plugins {
     }
     
     /**
+    * Include Plugins
     * Include all active plugins that are in the database
     * 
     */
@@ -448,6 +459,7 @@ class Plugins {
     
     
     /**
+    * Action Exists
     * Does a particular action hook even exist?
     * 
     * @param mixed $name
@@ -466,7 +478,9 @@ class Plugins {
     
     
     /**
-    * Triggers the functionname_activate function when a plugin is activated
+    * Trigger Activate Plugin
+    * Triggers the functionname_activate function 
+    * when a plugin is activated
     * 
     * @param mixed $name
     */
@@ -478,6 +492,7 @@ class Plugins {
     
     
     /**
+    * Trigger Deactivate Plugin
     * Triggers the functionname_deactivate function when a plugin is deactivated
     * 
     * @param mixed $name
