@@ -45,6 +45,7 @@ class Plugins {
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
         $this->_ci->load->helper('file');
+        $this->_ci->load->helper('url');
         
         // Set the plugins directory if passed via paramater
         if (array_key_exists('plugins_dir', $params))
