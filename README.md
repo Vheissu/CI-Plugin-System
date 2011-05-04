@@ -23,7 +23,7 @@ To see how the system works what better than an example application using a Mark
 Documentation is coming shortly, it's in the process as we speak. Tell your grandma to shut up and stop running her mouth. Be warned however, it won't come in the form of Scrabble, so your grandma might find it hard to understand.
 
 2. **I included it and I am getting lots of errors.**  
-You did something wrong or your server sucks or I am just in denial that there are any issues with this library. The biggest mistake is making sure you have PHP 5 installed, not PHP 4.
+You did something wrong or your server sucks or I am just in denial that there are any issues with this library. If you encounter an error and you're handy with PHP, feel free to submit a pull request.
 
 3. **But Wordpress lets me do x, why can't this library do that?**  
 This is not Wordpress, if you have a request, then contact me about it. If something is missing you think a hook based plugin library should have, tell me. Speaking of which, have you seen the Wordpress code base? Wow, what a mess that is. It's like going to the toilet at a football game, shit and rubbish absolutely everywhere.
@@ -32,7 +32,7 @@ This is not Wordpress, if you have a request, then contact me about it. If somet
 This is not a programming question, GTFO. Psst! send me an email, I can hook you up.
 
 5. **I still don't get it. How do I use this damn library? AAAAAAAAAHHH**  
-THERE IS NO DOCUMENTATION. IF MY INSTRUCTIONS ARE NOT CLEAR ENOUGH, THEN QUIT PROGRAMMING OR I SHOULD QUIT IF I DIDN'T EXPLAIN SOMETHING PROPERLY. WHY AM I SHOUTING?
+THERE IS NO DOCUMENTATION. IF MY INSTRUCTIONS ARE NOT CLEAR ENOUGH, THEN QUIT PROGRAMMING OR I SHOULD QUIT IF I DIDN'T EXPLAIN SOMETHING PROPERLY. WHY AM I SHOUTING? MY CAPS LOCK KEY IS NOT BROKEN, SIR.
 
 6. **My application is running really slowly, is this your fault?**  
-This is why we can't have nice things. This library will most likely not slow down your application. It works the same as Wordpress, only there is no caching at the moment of hook calls and plugin file includes (yet). So the answer is: no, it's your own fault.
+This is why we can't have nice things. This library will most likely not slow down your application. It works the same as Wordpress, only there is no caching at the moment of hook calls and plugin file includes (yet). So the answer is: no, it's your own fault. Although if you have 100's of plugins (which is nuts!), then yeah, you might get some slowdown. It would be like loading 2 tonnes of bricks into a Porsche, bye bye suspension.
