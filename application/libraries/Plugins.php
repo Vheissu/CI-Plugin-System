@@ -182,9 +182,24 @@ class Plugins {
             // If the file was included
             @include_once $this->plugins_dir.$name."/".$name.".php";
             
-            // Trigger an install event
-            $this->trigger_install_plugin($name);   
-        } 
+            // Run the install action for this plugin
+            do_action('install_' . $name); 
+        }
+    }
+    
+    public function add_activation_hook($name, $function)
+    {
+        add_action("activate_" . $name, $function);
+    }
+    
+    public function add_install_hook($name, $function)
+    {
+        add_action("install_" . $name, $function);
+    }
+    
+    public function add_deactivation_hook($name, $function)
+    {
+        add_action("deactivate_" . $name, $function);
     }
     
     
@@ -277,6 +292,9 @@ class Plugins {
             $this->_ci->db->insert('plugins', array('plugin_system_name' => $name));
             self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." successfully activated!";
         }
+        
+        // Run the activate hook
+        do_action('activate_' . $name);
     }
     
     /**
