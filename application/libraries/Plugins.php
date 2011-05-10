@@ -189,21 +189,6 @@ class Plugins {
         }
     }
     
-    public function add_activation_hook($name, $function)
-    {
-        add_action("activate_" . $name, $function);
-    }
-    
-    public function add_install_hook($name, $function)
-    {
-        add_action("install_" . $name, $function);
-    }
-    
-    public function add_deactivation_hook($name, $function)
-    {
-        add_action("deactivate_" . $name, $function);
-    }
-    
     
     /**
     * Get the header information from all plugins in
@@ -314,6 +299,9 @@ class Plugins {
         {
             $this->_ci->db->where('plugin_system_name', $name)->delete('plugins');
             self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." has been deactivated!";
+            
+            // Deactivate hook
+            do_action('deactivate_' . $name);
         }        
     }
     
@@ -502,45 +490,6 @@ class Plugins {
         {
             return false;
         }
-    }
-    
-    
-    /**
-    * Trigger Activate Plugin
-    * Triggers the functionname_activate function 
-    * when a plugin is activated
-    * 
-    * @param mixed $name
-    */
-    public function trigger_activate_plugin($name)
-    {
-        // Call plugin activate function
-        @call_user_func($name."_activate");
-    }
-    
-    
-    /**
-    * Trigger Deactivate Plugin
-    * Triggers the functionname_deactivate function when a plugin is deactivated
-    * 
-    * @param mixed $name
-    */
-    public function trigger_deactivate_plugin($name)
-    {
-        // Call our plugin deactivate function
-        @call_user_func($name."_deactivate");
-    }
-    
-    
-    /**
-    * Triggers the functionname_install function when a plugin is first installed
-    * 
-    * @param mixed $name
-    */
-    public function trigger_install_plugin($name)
-    {        
-        // Call our plugin deactivate function
-        @call_user_func($name."_install");
     }
     
     
