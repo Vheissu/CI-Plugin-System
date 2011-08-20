@@ -40,7 +40,6 @@ class Plugins {
     public function __construct($params = array())
     {
         $this->_ci      = get_instance(); // Codeigniter instance
-        self::$instance = $this;          // Instance of this class
         
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
@@ -54,16 +53,21 @@ class Plugins {
         }
         else // else set to default value
         {
-        	$this->set_plugin_dir('../../' . "plugins");
+            $basepath = str_replace("\\", "/", FCPATH);
+        	$this->set_plugin_dir($basepath . "plugins/");
         }
         
         // Remove index.php string on the plugins directory if any
         $this->plugins_dir = str_replace("index.php", "", $this->plugins_dir);      
                 
-        $this->find_plugins();          // Find all plugins
-        $this->get_activated_plugins(); // Get all activated plugins
-        $this->get_plugin_infos();      // Gets information about all plugins and stores it
-        $this->include_plugins();       // Include plugins
+        // Find all plugins
+        $this->find_plugins();
+        
+        // Get all activated plugins
+        $this->get_activated_plugins();
+        
+        // Include plugins
+        $this->include_plugins();       
         
         self::$messages = ""; // Clear messages
         self::$errors   = ""; // Clear errors                      
@@ -75,12 +79,12 @@ class Plugins {
     * 
     * @param mixed $directory
     */
-    private function set_plugin_dir($directory)
+    public function set_plugin_dir($directory)
     {
         if ( !empty($directory) )
         {
-            $this->plugins_dir = trim($directory)."/";
-        }        
+            $this->plugins_dir = trim($directory);
+        }    
     }
     
     /**
@@ -90,15 +94,19 @@ class Plugins {
     */
     public static function instance()
     {
-        return Plugins::$instance;
+        if (!self::$instance)
+        {
+            self::$instance = new Plugins();
+        }
+
+        return self::$instance;
     }
     
     
     /**
     * Find Plugins
+    * 
     * Find plugins in the plugins directory. 
-    * This just gets all plugins oh, and then 
-    * it stores the plugin header information.
     * 
     */
     public function find_plugins()
@@ -107,14 +115,13 @@ class Plugins {
         
         if ($plugins !== false)
         {        
-            // Iterate through every plugin found
             foreach ($plugins AS $key => $name)
             {                 
-                $name = strtolower(trim($name)); // Trim any whitespace and lowercase
+                $name = strtolower(trim($name));
                       
                 // If the plugin hasn't already been added and isn't a file
                 if ( !isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
-                {                
+                {              
                     // Make sure a valid plugin file by the same name as the folder exists
                     if ( file_exists($this->plugins_dir.$name."/".$name.".php") )
                     {
@@ -147,6 +154,7 @@ class Plugins {
             // For every plugin, store it
             foreach ($plugins->result_array() AS $plugin)
             {
+                $this->get_plugin_headers($plugin['plugin_system_name']);
                 self::$plugins_active[$plugin['plugin_system_name']] = $plugin['plugin_system_name'];
             }
         }
@@ -163,7 +171,7 @@ class Plugins {
     */
     public function include_plugins()
     {
-        if(self::$plugins_active)
+        if(self::$plugins_active AND !empty(self::$plugins_active))
         {
             // Validate and include our found plugins
             foreach (self::$plugins_active AS $name => $value)
@@ -181,7 +189,7 @@ class Plugins {
                 $this->_ci->db->where('plugin_system_name', $name)->update('plugins', $data);
             
                 // If the file was included
-                @include_once $this->plugins_dir.$name."/".$name.".php";
+                include_once $this->plugins_dir.$name."/".$name.".php";
             
                 // Run the install action for this plugin
                 do_action('install_' . $name); 
@@ -194,68 +202,64 @@ class Plugins {
     * Get the header information from all plugins in
     * the plugins pool for use later on.
     * 
-    * @param mixed $name
+    * @param mixed $plugin
     */
-    public function get_plugin_infos()
+    public function get_plugin_headers($plugin)
     {
-        if (self::$plugins_pool !== false)
-        {
-            // Iterate over all plugins
-            foreach (self::$plugins_pool AS $plugin => $value )
-            {        
-                $plugin = strtolower(trim($plugin)); // Lowercase and trim the plugin name
+        if (self::$plugins_pool !== false AND !empty(self::$plugins_pool))
+        {     
+            $plugin = strtolower(trim($plugin)); // Lowercase and trim the plugin name
+            
+            $plugin_data = read_file($this->plugins_dir.$plugin."/".$plugin.".php"); // Load the plugin we want
+                   
+            preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
+            preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
+            preg_match ( '|Version:(.*)|i', $plugin_data, $version );
+            preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
+            preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
+            preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
                 
-                $plugin_data = read_file($this->plugins_dir.$plugin."/".$plugin.".php"); // Load the plugin we want
-                       
-                preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
-                preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
-                preg_match ( '|Version:(.*)|i', $plugin_data, $version );
-                preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
-                preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
-                preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
-                
-                if (isset($name[1]))
+            if (isset($name[1]))
+            {
+                $arr['plugin_name'] = trim($name[1]);
+            }
+            
+            if (isset($uri[1]))
+            {
+                $arr['plugin_uri'] = trim($uri[1]);
+            }
+            
+            if (isset($version[1]))
+            {
+                $arr['plugin_version'] = trim($version[1]);
+            }
+            
+            if (isset($description[1]))
+            {
+                $arr['plugin_description'] = trim($description[1]);
+            }
+            
+            if (isset($author_name[1]))
+            {
+                $arr['plugin_author'] = trim($author_name[1]);
+            }
+            
+            if (isset($author_uri[1]))
+            {
+                $arr['plugin_author_uri'] = trim($author_uri[1]);
+            }
+            
+            // For every plugin header item
+            foreach ($arr AS $k => $v)
+            {
+                // If the key doesn't exist or the value is not the same, update the array
+                if ( !isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v )
                 {
-                    $arr['plugin_name'] = trim($name[1]);
+                    self::$plugins_pool[$plugin]['plugin_info'][$k] = trim($v);
                 }
-                
-                if (isset($uri[1]))
+                else
                 {
-                    $arr['plugin_uri'] = trim($uri[1]);
-                }
-                
-                if (isset($version[1]))
-                {
-                    $arr['plugin_version'] = trim($version[1]);
-                }
-                
-                if (isset($description[1]))
-                {
-                    $arr['plugin_description'] = trim($description[1]);
-                }
-                
-                if (isset($author_name[1]))
-                {
-                    $arr['plugin_author'] = trim($author_name[1]);
-                }
-                
-                if (isset($author_uri[1]))
-                {
-                    $arr['plugin_author_uri'] = trim($author_uri[1]);
-                }
-                
-                // For every plugin header item
-                foreach ($arr AS $k => $v)
-                {
-                    // If the key doesn't exist or the value is not the same, update the array
-                    if ( !isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v )
-                    {
-                        self::$plugins_pool[$plugin]['plugin_info'][$k] = trim($v);
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
         } 
@@ -276,12 +280,16 @@ class Plugins {
         // Okay the plugin exists, push it to the activated array
         if ( isset(self::$plugins_pool[$name]) AND !isset(self::$plugins_active[$name]) )
         {
-            $this->_ci->db->insert('plugins', array('plugin_system_name' => $name));
-            self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." successfully activated!";
+            $db = $this->_ci->select('plugin_system_name')->where('plugin_system_name', $name)->get('plugins', 1);
+            
+            if ($db->num_rows() == 0)
+            {
+                $this->_ci->db->insert('plugins', array('plugin_system_name' => $name));   
+            }
+            
+            // Run the activate hook
+            do_action('activate_' . $name);
         }
-        
-        // Run the activate hook
-        do_action('activate_' . $name);
     }
     
     /**
@@ -607,7 +615,7 @@ function set_plugin_dir($directory)
 * 
 * @param mixed $name
 */
-function activate_plugin($name)
+function activate($name)
 {
     return Plugins::instance()->activate_plugin($name);
 }
@@ -617,7 +625,7 @@ function activate_plugin($name)
 * 
 * @param mixed $name
 */
-function deactivate_plugin($name)
+function deactivate($name)
 {
     return Plugins::instance()->deactivate_plugin($name);
 }
