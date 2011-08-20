@@ -54,7 +54,7 @@ class Plugins {
         }
         else // else set to default value
         {
-        	$this->set_plugin_dir(FCPATH . "plugins");
+        	$this->set_plugin_dir('../../' . "plugins");
         }
         
         // Remove index.php string on the plugins directory if any
