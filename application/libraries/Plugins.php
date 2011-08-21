@@ -279,12 +279,8 @@ class Plugins {
         
         // Okay the plugin exists, push it to the activated array
         if ( isset(self::$plugins_pool[$name]) AND !isset(self::$plugins_active[$name]) )
-        {
-            $this->_ci->db->cache_on();
-            
+        {            
             $db = $this->_ci->db->select('plugin_system_name')->where('plugin_system_name', $name)->get('plugins', 1);
-            
-            $this->_ci->db->cache_off();
             
             if ($db->num_rows() == 0)
             {
