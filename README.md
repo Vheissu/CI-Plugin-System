@@ -1,4 +1,4 @@
-## A hook based plugin system for Codeigniter 2.0+
+## A hook based plugin system for Codeigniter 2.1+
 
 Ever wanted to implement plugin functionality into your Codeigniter applications and have the ability to define hooks and add hooks to your plugins so users can control aspects of your application like Wordpress? That's where this library comes in. It's still heavily alpha, but should work. This is a complete from the ground up library that has been developed to give you the ability to define hooks including hooks with arguments.
 
@@ -8,7 +8,7 @@ I'm glad you asked. If you are familiar with Wordpress action and filter hooks, 
 
 * Download the files from this Github, then paste the folders into your root directory. Nothing should be overwritten (hopefully).
 * Autoload the library "plugins"
-* Start implementing your action points within your application using the run_action() function.
+* Start implementing your action points within your application using the do_action() function.
 * In your plugins make sure to utilise the add_action() to register callbacks to your plugin functions when do_action is called.
 * To active a plugin you simply go: activate_plugin('pluginname'); (the plugin name is the name of your plugin folder, lowercased and no spaces or characters).
 * To deactivated a plugin you simply go: deactive_plugin('pluginname'); (the plugin name is the name of your plugin folder, lowercased and no spaces or characters).
@@ -20,7 +20,7 @@ To see how the system works what better than an example application using a Mark
 ## FAQ's
 
 1. **My grandma says that she doesn't understand how to use this library, where is the documentation?**  
-Documentation is coming shortly, it's in the process as we speak. Tell your grandma to shut up and stop running her mouth. Be warned however, it won't come in the form of Scrabble, so your grandma might find it hard to understand.
+Documentation is coming shortly, it's in the process as we speak. Tell your grandma to shut up and stop running her mouth. Be warned however, it won't come in the form of Scrabble or checkers, so your grandma might find it hard to understand.
 
 2. **I included it and I am getting lots of errors.**  
 You did something wrong or your server sucks or I am just in denial that there are any issues with this library. If you encounter an error and you're handy with PHP, feel free to submit a pull request.
