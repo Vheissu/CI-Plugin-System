@@ -1,10 +1,27 @@
 <?php
 /**
-* @name CI Plugin System
-* @author Dwayne Charrington (and other contributors)
-* @copyright 2011, Dwayne Charrington.
-* @license (DWYWWTJAM) Do what you want with this, just attribute me.
+* Codeigniter Plugin System
+*
+* A hook based plugin library for adding in Wordpress like plugin functionality.
+*
+* NOTICE OF LICENSE
+*
+* Licensed under the Open Software License version 3.0
+*
+* This source file is subject to the Open Software License (OSL 3.0) that is
+* bundled with this package in the files license.txt / license.rst. It is
+* also available through the world wide web at this URL:
+* http://opensource.org/licenses/OSL-3.0
+* If you did not receive a copy of the license and are unable to obtain it
+* through the world wide web, please send an email to
+* licensing@ellislab.com so we can send you a copy immediately.
+*
+* @package CI Plugin System
+* @author Dwayne Charrington
+* @copyright Copyright (c) 2012 - Dwayne Charrington
+* @license http://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
 * @link http://ilikekillnerds.com
+* @since Version 1.1
 */
   
 class Plugins {
@@ -39,7 +56,8 @@ class Plugins {
     */
     public function __construct($params = array())
     {
-        $this->_ci      = get_instance(); // Codeigniter instance
+        // Codeigniter instance
+        $this->_ci &= get_instance();
         
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
@@ -94,7 +112,7 @@ class Plugins {
     */
     public static function instance()
     {
-        if (!self::$instance)
+        if ( ! self::$instance)
         {
             self::$instance = new Plugins();
         }
@@ -120,7 +138,7 @@ class Plugins {
                 $name = strtolower(trim($name));
                       
                 // If the plugin hasn't already been added and isn't a file
-                if ( !isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
+                if ( ! isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
                 {              
                     // Make sure a valid plugin file by the same name as the folder exists
                     if ( file_exists($this->plugins_dir.$name."/".$name.".php") )
@@ -199,6 +217,8 @@ class Plugins {
     
     
     /**
+    * Get Plugin Headers
+    *
     * Get the header information from all plugins in
     * the plugins pool for use later on.
     * 
@@ -267,6 +287,7 @@ class Plugins {
     
     /**
     * Activate Plugin
+    *
     * Activates a plugin only if it exists in the
     * plugins_pool. After activating, reload page
     * to get the newly activated plugin
@@ -294,6 +315,7 @@ class Plugins {
     
     /**
     * Deactivate Plugin
+    *
     * Deactivates a plugin
     * 
     * @param string $name
@@ -316,6 +338,7 @@ class Plugins {
     
     /**
     * Plugin Info
+    *
     * Get information about a specific plugin
     * 
     * @param mixed $name
@@ -335,6 +358,7 @@ class Plugins {
     
     /**
     * Print Plugins
+    *
     * This plugin returns the array of all plugins found
     * 
     */
@@ -346,6 +370,7 @@ class Plugins {
     
     /**
     * Add Action
+    *
     * Add a new hook trigger action
     * 
     * @param mixed $name
@@ -383,6 +408,7 @@ class Plugins {
     
     /**
     * Do Action
+    *
     * Trigger an action for a particular action hook
     * 
     * @param mixed $name
@@ -432,6 +458,7 @@ class Plugins {
     
     /**
     * Remove Action
+    *
     * Remove an action hook. No more needs to be said.
     * 
     * @param mixed $name
@@ -453,6 +480,7 @@ class Plugins {
     
     /**
     * Current Action
+    *
     * Get the currently running action hook
     * 
     */
@@ -464,6 +492,7 @@ class Plugins {
     
     /**
     * Has Run
+    *
     * Check if a particular hook has been run
     * 
     * @param mixed $hook
@@ -484,6 +513,7 @@ class Plugins {
     
     /**
     * Action Exists
+    *
     * Does a particular action hook even exist?
     * 
     * @param mixed $name
@@ -667,6 +697,10 @@ function debug_class()
     Plugins::debug_class();
 }
 
+/**
+* Return all errors
+*
+*/
 function plugin_errors()
 {
     if ( is_array(Plugins::$errors) )
@@ -682,6 +716,10 @@ function plugin_errors()
     }
 }
 
+/**
+* Return all messages
+*
+*/
 function plugin_messages()
 {
     if ( is_array(Plugins::$messages) )
