@@ -57,7 +57,7 @@ class Plugins {
     public function __construct($params = array())
     {
         // Codeigniter instance
-        $this->_ci &= get_instance();
+        $this->_ci = &get_instance();
         
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
