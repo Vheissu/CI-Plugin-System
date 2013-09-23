@@ -57,7 +57,7 @@ class Plugins {
     public function __construct($params = array())
     {
         // Codeigniter instance
-        $this->_ci = &get_instance();
+        $this->_ci =& get_instance();
         
         $this->_ci->load->database();
         $this->_ci->load->helper('directory');
@@ -99,7 +99,7 @@ class Plugins {
     */
     public function set_plugin_dir($directory)
     {
-        if ( !empty($directory) )
+        if (!empty($directory))
         {
             $this->plugins_dir = trim($directory);
         }    
@@ -112,7 +112,7 @@ class Plugins {
     */
     public static function instance()
     {
-        if ( ! self::$instance)
+        if (!self::$instance)
         {
             self::$instance = new Plugins();
         }
@@ -131,17 +131,17 @@ class Plugins {
     {        
         $plugins = directory_map($this->plugins_dir, 1); // Find plugins
         
-        if ($plugins !== false)
+        if ($plugins != false)
         {        
             foreach ($plugins AS $key => $name)
             {                 
                 $name = strtolower(trim($name));
                       
                 // If the plugin hasn't already been added and isn't a file
-                if ( ! isset(self::$plugins_pool[$name]) AND !stripos($name, ".") )
+                if (!isset(self::$plugins_pool[$name]) AND !stripos($name, "."))
                 {              
                     // Make sure a valid plugin file by the same name as the folder exists
-                    if ( file_exists($this->plugins_dir.$name."/".$name.".php") )
+                    if (file_exists($this->plugins_dir.$name."/".$name.".php"))
                     {
                         // Register the plugin
                         self::$plugins_pool[$name]['plugin'] = $name; 
@@ -167,7 +167,7 @@ class Plugins {
         $plugins = $this->_ci->db->get('plugins');
         
         // If we have activated plugins
-        if ( $plugins->num_rows() > 0 )
+        if ($plugins->num_rows() > 0)
         {
             // For every plugin, store it
             foreach ($plugins->result_array() AS $plugin)
@@ -207,10 +207,10 @@ class Plugins {
                 $this->_ci->db->where('plugin_system_name', $name)->update('plugins', $data);
             
                 // If the file was included
-                include_once $this->plugins_dir.$name."/".$name.".php";
+                include_once $this->plugins_dir.$name."/".$name.".php";				
             
                 // Run the install action for this plugin
-                do_action('install_' . $name); 
+                self::do_action('install_' . $name); 
             }   
         }
     }
@@ -232,12 +232,12 @@ class Plugins {
             
             $plugin_data = read_file($this->plugins_dir.$plugin."/".$plugin.".php"); // Load the plugin we want
                    
-            preg_match ( '|Plugin Name:(.*)$|mi', $plugin_data, $name );
-            preg_match ( '|Plugin URI:(.*)$|mi', $plugin_data, $uri );
-            preg_match ( '|Version:(.*)|i', $plugin_data, $version );
-            preg_match ( '|Description:(.*)$|mi', $plugin_data, $description );
-            preg_match ( '|Author:(.*)$|mi', $plugin_data, $author_name );
-            preg_match ( '|Author URI:(.*)$|mi', $plugin_data, $author_uri );
+            preg_match ('|Plugin Name:(.*)$|mi', $plugin_data, $name);
+            preg_match ('|Plugin URI:(.*)$|mi', $plugin_data, $uri);
+            preg_match ('|Version:(.*)|i', $plugin_data, $version);
+            preg_match ('|Description:(.*)$|mi', $plugin_data, $description);
+            preg_match ('|Author:(.*)$|mi', $plugin_data, $author_name);
+            preg_match ('|Author URI:(.*)$|mi', $plugin_data, $author_uri);
                 
             if (isset($name[1]))
             {
@@ -246,6 +246,7 @@ class Plugins {
             
             if (isset($uri[1]))
             {
+
                 $arr['plugin_uri'] = trim($uri[1]);
             }
             
@@ -273,7 +274,7 @@ class Plugins {
             foreach ($arr AS $k => $v)
             {
                 // If the key doesn't exist or the value is not the same, update the array
-                if ( !isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v )
+                if (!isset(self::$plugins_pool[$plugin]['plugin_info'][$k]) OR self::$plugins_pool[$plugin]['plugin_info'][$k] != $v)
                 {
                     self::$plugins_pool[$plugin]['plugin_info'][$k] = trim($v);
                 }
@@ -299,7 +300,7 @@ class Plugins {
         $name = strtolower(trim($name)); // Make sure the name is lowercase and no spaces
         
         // Okay the plugin exists, push it to the activated array
-        if ( isset(self::$plugins_pool[$name]) AND !isset(self::$plugins_active[$name]) )
+        if (isset(self::$plugins_pool[$name]) AND !isset(self::$plugins_active[$name]))
         {            
             $db = $this->_ci->db->select('plugin_system_name')->where('plugin_system_name', $name)->get('plugins', 1);
             
@@ -309,7 +310,7 @@ class Plugins {
             }
             
             // Run the activate hook
-            do_action('activate_' . $name);
+            self::do_action('activate_' . $name);
         }
     }
     
@@ -325,13 +326,13 @@ class Plugins {
         $name = strtolower(trim($name)); // Make sure the name is lowercase and no spaces
         
         // Okay the plugin exists
-        if ( isset(self::$plugins_active[$name]) )
+        if (isset(self::$plugins_active[$name]))
         {
             $this->_ci->db->where('plugin_system_name', $name)->delete('plugins');
             self::$messages[] = "Plugin ".self::$plugins_pool[$name]['plugin_info']['plugin_name']." has been deactivated!";
             
             // Deactivate hook
-            do_action('deactivate_' . $name);
+            self::do_action('deactivate_' . $name);
         }        
     }
     
@@ -345,7 +346,7 @@ class Plugins {
     */
     public function plugin_info($name)
     {
-        if ( isset(self::$plugins_pool[$name]) )
+        if (isset(self::$plugins_pool[$name]))
         {
             return self::$plugins_pool[$name]['plugin_info'];
         }
@@ -380,7 +381,7 @@ class Plugins {
     public function add_action($name, $function, $priority=10)
     {
         // If we have already registered this action return true
-        if ( isset(self::$actions[$name][$priority][$function]) )
+        if (isset(self::$actions[$name][$priority][$function]))
         {
             return true;
         }
@@ -388,7 +389,7 @@ class Plugins {
         /**
         * Allows us to iterate through multiple action hooks.
         */
-        if ( is_array($name) )
+        if (is_array($name))
         {
             foreach ($name AS $name)
             {
@@ -418,7 +419,7 @@ class Plugins {
     public function do_action($name, $arguments = "")
     {
         // Oh, no you didn't. Are you trying to run an action hook that doesn't exist?
-        if ( !isset(self::$actions[$name]) )
+        if (!isset(self::$actions[$name]))
         {
             return $arguments;
         }
@@ -431,7 +432,7 @@ class Plugins {
         
         foreach(self::$actions[$name] AS $priority => $names)
         {
-            if ( is_array($names) )
+            if (is_array($names))
             {
                 foreach($names AS $name)
                 {
@@ -468,7 +469,7 @@ class Plugins {
     public function remove_action($name, $function, $priority=10)
     {
         // If the action hook doesn't, just return true
-        if ( !isset(self::$actions[$name][$priority][$function]) )
+        if (!isset(self::$actions[$name][$priority][$function]))
         {
             return true;
         }
@@ -500,7 +501,7 @@ class Plugins {
     */
     public function has_run($action, $priority = 10)
     {
-        if ( isset(self::$actions[$action][$priority]) )
+        if (isset(self::$actions[$action][$priority]))
         {
             return true;
         }
@@ -520,7 +521,7 @@ class Plugins {
     */
     public function action_exists($name)
     {
-        if ( isset(self::$actions[$name]) )
+        if (isset(self::$actions[$name]))
         {
             return true;
         }
@@ -538,7 +539,7 @@ class Plugins {
     */
     public static function debug_class()
     {
-        if ( isset(self::$plugins_pool) )
+        if (isset(self::$plugins_pool))
         {
             echo "<h2>Found plugins</h2>";
             echo "<p>All plugins found in the plugins directory.</p>";
@@ -549,7 +550,7 @@ class Plugins {
             echo "<br />";
         }
         
-        if ( isset(self::$plugins_active) )
+        if (isset(self::$plugins_active))
         {
             echo "<h2>Activated plugins</h2>";
             echo "<p>Activated plugins that have already been included and are usable.</p>";
@@ -560,7 +561,7 @@ class Plugins {
             echo "<br />";
         }
         
-        if ( isset(self::$actions) )
+        if (isset(self::$actions))
         {
             echo "<h2>Register action hooks</h2>";
             echo "<p>Action hooks that have been registered by the application and can be called via plugin files.</p>";
@@ -571,7 +572,7 @@ class Plugins {
             echo "<br />";
         }        
         
-        if ( isset(self::$run_actions) )
+        if (isset(self::$run_actions))
         {
             echo "<h2>Previously run action hooks</h2>";
             echo "<p>Hooks that have been called previously.</p>";
@@ -703,7 +704,7 @@ function debug_class()
 */
 function plugin_errors()
 {
-    if ( is_array(Plugins::$errors) )
+    if (is_array(Plugins::$errors))
     {
         foreach (Plugins::$errors AS $k => $error)
         {
@@ -722,7 +723,7 @@ function plugin_errors()
 */
 function plugin_messages()
 {
-    if ( is_array(Plugins::$messages) )
+    if (is_array(Plugins::$messages))
     {
         foreach (Plugins::$messages AS $k => $message)
         {
